@@ -1,0 +1,2 @@
+# localstorage-playground
+localStorageの危険性を体験・学習するためのセキュリティ教育ツール
