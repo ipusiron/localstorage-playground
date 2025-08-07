@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>LocalStorage Playground</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>LocalStorage Playground</h1>
+    <p class="subtitle">localStorage / sessionStorage の特性と危険性を体験しよう</p>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-button active" data-tab="storage">🗃 ストレージ操作</button>
+    <button class="tab-button" data-tab="xss">💥 XSSデモ</button>
+    <button class="tab-button" data-tab="learn">📖 学習</button>
+  </nav>
+
+  <main>
+    <section id="storage" class="tab-content active">
+      <h2>🗃 ストレージ操作</h2>
+
+      <div class="input-area">
+        <input type="text" id="keyInput" placeholder="キー">
+        <input type="text" id="valueInput" placeholder="値">
+        <select id="storageType">
+          <option value="local">localStorage</option>
+          <option value="session">sessionStorage</option>
+        </select>
+        <button onclick="saveData()">保存</button>
+      </div>
+
+      <div class="actions">
+        <button onclick="clearStorage('local')">localStorageを全削除</button>
+        <button onclick="clearStorage('session')">sessionStorageを全削除</button>
+      </div>
+
+      <div class="storage-display">
+        <div>
+          <h3>📦 localStorage</h3>
+          <ul id="localList"></ul>
+        </div>
+        <div>
+          <h3>⏳ sessionStorage</h3>
+          <ul id="sessionList"></ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="xss" class="tab-content">
+      <h2>💥 XSSによるlocalStorage盗難のデモ</h2>
+      <p>下のフィールドに悪意あるスクリプトを入力して「実行」すると、localStorageからデータを盗む動作を再現できます（※安全な環境内のみで実行してください）。</p>
+      <textarea id="xssInput" placeholder='例: alert(localStorage.getItem("token"))'></textarea>
+      <button onclick="runXSS()">実行</button>
+      <div id="xssResult" class="xss-output"></div>
+    </section>
+
+    <section id="learn" class="tab-content">
+      <h2>📖 Web Storageの仕組みとセキュリティ</h2>
+      <ul>
+        <li><strong>localStorage</strong> は永続的にブラウザ内に保存され、JSから自由に読み書きできます。</li>
+        <li><strong>sessionStorage</strong> はタブを閉じると消えますが、JSからアクセス可能です。</li>
+        <li><strong>XSS</strong> 攻撃が成立すると、保存されたトークンなどがすぐに盗まれます。</li>
+        <li>機密情報は <code>HttpOnly Cookie</code> に保存すべきで、localStorageは推奨されません。</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer">
+      🔗 GitHubリポジトリはこちら（ <a href="https://github.com/ipusiron/localstorage-playground" target="_blank">ipusiron/localstorage-playground</a> ）
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
