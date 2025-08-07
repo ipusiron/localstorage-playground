@@ -20,7 +20,7 @@
 
   <main>
     <section id="storage" class="tab-content active">
-      <h2>🗃 ストレージ操作</h2>
+      <h2>🗃 ストレージ（localStorageとsessionStorage）操作</h2>
 
       <div class="input-area">
         <input type="text" id="keyInput" placeholder="キー">
@@ -33,17 +33,26 @@
       </div>
 
       <div class="actions">
-        <button onclick="clearStorage('local')">localStorageを全削除</button>
-        <button onclick="clearStorage('session')">sessionStorageを全削除</button>
+        <!-- Clear buttons moved to storage headers -->
       </div>
 
       <div class="storage-display">
         <div>
-          <h3>📦 localStorage</h3>
+          <div class="storage-header">
+            <h3>📦 localStorage</h3>
+            <button class="clear-storage-btn" onclick="clearStorage('local')" title="localStorageを全削除">
+              🗑️ 全削除
+            </button>
+          </div>
           <ul id="localList"></ul>
         </div>
         <div>
-          <h3>⏳ sessionStorage</h3>
+          <div class="storage-header">
+            <h3>⏳ sessionStorage</h3>
+            <button class="clear-storage-btn" onclick="clearStorage('session')" title="sessionStorageを全削除">
+              🗑️ 全削除
+            </button>
+          </div>
           <ul id="sessionList"></ul>
         </div>
       </div>
@@ -74,6 +83,6 @@
     </div>
   </footer>
 
-  <script src="script.js"></script>
+  <script type="module" src="main.js"></script>
 </body>
 </html>

