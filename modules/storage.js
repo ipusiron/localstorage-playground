@@ -92,7 +92,7 @@ export class StorageManager {
           api_key: "sk-1234567890abcdefghijklmnopqrstuvwxyz",
           database_password: "admin123",
           credit_card_token: "tok_visa_4242424242424242",
-          private_key: "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC7VJTUt9Us8cKB\nUxoiWnoon4d6+CNoH3ZlxAqSu7J86UvNvfy6hOJr6b8S8F8xnJzCy4VTJ9mGr0zF\nOmM/YD5J8Rf9X3b5vGJyJt7+OvMQ7RJsUz67q8RKfF9wKvGqWw8xGKzJmNh1P4U5\nXDlCyeH4qz8eLvGKVvxwP4NzRZlk5JsBN3JLX9vQy+P5dY3K6c2kO8m/JkQ4qzL\nJzTxY4HzVxSjS4P2X7eFZcUv6Z4oIkL7eQJKxA+KZFdJ8NQvPh3Y9sHoRG9mXy5\nRw7PxDf5L6N8cJ+y3qLjM8k9z+1xRvTc8gU5qOw4JhV7c8LqOzY6NpY5K2W8H5vG\nZb9yL6z8AgMBAAECggEBAIrGx9zrOKlF8n1b5z9vWxJY6kL8V7m8Zf9+J8k6X3qZ\nN4+Pt6oWzqVhMYzX5zKjU9e8qE3vVbO2j6Y8X1wZuFqJVz+Qz8K3b6tGJ+Y9R5vP\nyL2+qE5zHkVjO8mQ7z6T8nU9pF8vK3q7R5+Z8w2X6yJ9k8N7vG5+P4zLqM8uV6tR\nZ9w3K8pQ7j+L5y3vF2k9mO8bX4jP3nL7+Q2zY5wK8vZ6tR9pF2k8N7vG5+P4zLqM\n8uV6tRZ9w3K8pQ7j+L5y3vF2k9mO8bX4jP3nL7+Q2zY5wK8vZ6tR9pF2k8N7vG5+\nP4zLqM8uV6tRZ9w3K8pQ7j+L5y3vF2k9mO8bX4jP3nL7+Q2zY5wK8vZ6ECggEBAM\n-----END PRIVATE KEY-----",
+          private_key: "[DUMMY_FOR_DEMO_ONLY] This is a fake RSA private key for educational purposes. Not a real secret. Structure: -----BEGIN EXAMPLE KEY----- [EDUCATIONAL_SAMPLE_DATA_NOT_REAL_RSA] -----END EXAMPLE KEY-----",
           social_security: "123-45-6789",
           admin_token: "admin_super_secret_token_do_not_expose"
         }
