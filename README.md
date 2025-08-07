@@ -18,9 +18,9 @@
 
 ---
 
-## 🚀 今すぐ試す
+## 🚀 デモページ
 
-👉 **[デモページ](https://ipusiron.github.io/localstorage-playground/)**
+👉 **[https://ipusiron.github.io/localstorage-playground/](https://ipusiron.github.io/localstorage-playground/)**
 
 ---
 
