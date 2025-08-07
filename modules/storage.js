@@ -92,7 +92,7 @@ export class StorageManager {
           api_key: "sk-1234567890abcdefghijklmnopqrstuvwxyz",
           database_password: "admin123",
           credit_card_token: "tok_visa_4242424242424242",
-          private_key: "[DUMMY_FOR_DEMO_ONLY] This is a fake RSA private key for educational purposes. Not a real secret. Structure: -----BEGIN EXAMPLE KEY----- [EDUCATIONAL_SAMPLE_DATA_NOT_REAL_RSA] -----END EXAMPLE KEY-----",
+          private_key: "[DUMMY_KEY] This is not a real key. Included for demo purposes only.",
           social_security: "123-45-6789",
           admin_token: "admin_super_secret_token_do_not_expose"
         }
