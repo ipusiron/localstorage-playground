@@ -750,33 +750,78 @@ main {
   }
 }
 
+/* XSS入力セクション */
+.xss-input-section {
+  margin: 1.5rem auto;
+  max-width: 800px;
+  background-color: #ffffff;
+  border: 1px solid #e1e4e8;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+}
+
 #xssInput {
   width: 100%;
-  max-width: 600px;
   min-height: 120px;
-  font-family: monospace;
+  font-family: 'Courier New', monospace;
   padding: 1rem;
-  font-size: 1rem;
-  margin: 0 auto 1rem;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
   display: block;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 0.375rem;
+  background-color: #f8f9fa;
+  line-height: 1.4;
+  resize: vertical;
 }
 
 #xssInput:focus {
   outline: none;
-  border-color: #ff6565;
-  box-shadow: 0 0 0 2px rgba(255, 101, 101, 0.1);
+  border-color: #0366d6;
+  box-shadow: 0 0 0 3px rgba(3, 102, 214, 0.1);
+}
+
+.xss-execute-btn {
+  background-color: #0366d6;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.xss-execute-btn:hover {
+  background-color: #0256c7;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(3, 102, 214, 0.2);
+}
+
+.xss-execute-btn:active {
+  transform: translateY(0);
 }
 
 .xss-output {
   margin: 1rem auto;
-  max-width: 600px;
+  max-width: 800px;
   background: #ffecec;
   border: 1px solid #ff9b9b;
   padding: 1rem;
-  border-radius: 4px;
+  border-radius: 0.375rem;
   color: #b20000;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow-wrap: break-word;
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 footer {
@@ -1290,6 +1335,35 @@ footer {
   border: 1px solid #b8daff;
 }
 
+/* サニタイゼーションデモ出力 */
+.demo-output {
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.demo-output.vulnerable {
+  background-color: #ffebee;
+  border: 1px solid #f8d7da;
+}
+
+.demo-output.safe {
+  background-color: #e8f5e8;
+  border: 1px solid #c3e6cb;
+}
+
+.output-sample {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 0.25rem;
+  padding: 0.5rem;
+  margin-top: 0.25rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  word-break: break-all;
+}
+
 .xss-output.xss-success {
   background: #d4edda;
   border-color: #c3e6cb;
@@ -1312,6 +1386,63 @@ footer {
   background: #f8d7da;
   border-color: #f5c6cb;
   color: #721c24;
+}
+
+/* XSS実行結果の見やすさ改善 */
+.xss-output::-webkit-scrollbar {
+  width: 8px;
+}
+
+.xss-output::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.1);
+  border-radius: 4px;
+}
+
+.xss-output::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.3);
+  border-radius: 4px;
+}
+
+.xss-output::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,0,0,0.5);
+}
+
+/* データ準備通知 */
+.data-preparation-notice {
+  background-color: #e3f2fd;
+  border: 1px solid #2196f3;
+  border-radius: 0.375rem;
+  padding: 0.75rem;
+  margin: 1rem auto;
+  max-width: 800px;
+  animation: slideInNotice 0.3s ease-out;
+}
+
+.notice-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #1976d2;
+}
+
+.notice-icon {
+  font-size: 1.1rem;
+}
+
+.notice-text {
+  font-weight: 500;
+}
+
+@keyframes slideInNotice {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Learn section enhancements */
@@ -1650,18 +1781,24 @@ footer {
 }
 
 .export-btn {
-  background: #17a2b8;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 0.4rem 0.6rem;
+  background: #f8f9fa;
+  color: #24292f;
+  border: 1px solid #d0d7de;
+  border-radius: 0.375rem;
+  padding: 0.375rem 0.75rem;
   cursor: pointer;
-  font-size: 0.9rem;
-  transition: background-color 0.2s;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .export-btn:hover {
-  background: #138496;
+  background: #0969da;
+  border-color: #0969da;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(9, 105, 218, 0.2);
 }
 
 .capacity-bar {
@@ -3158,4 +3295,239 @@ footer {
     padding: 0.6rem 1rem;
     font-size: 0.9rem;
   }
+}
+
+/* Quota result modal styles - unified with other modals */
+.quota-result-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.quota-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+
+.quota-modal-content {
+  position: relative;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  z-index: 1001;
+}
+
+.quota-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e1e4e8;
+  background-color: #f8f9fa;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.quota-modal-header h3 {
+  margin: 0;
+  color: #24292f;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.quota-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #656d76;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s;
+}
+
+.quota-modal-close:hover {
+  background-color: #f3f4f6;
+  color: #24292f;
+}
+
+.quota-modal-body {
+  padding: 1.5rem;
+}
+
+.quota-summary {
+  text-align: center;
+}
+
+.quota-main-stat {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.quota-capacity, .quota-usage {
+  text-align: center;
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.quota-capacity {
+  background-color: #f0f9ff;
+  border: 1px solid #0969da;
+}
+
+.quota-usage {
+  background-color: #fff8f0;
+  border: 1px solid #fb8500;
+}
+
+.capacity-label, .usage-label {
+  display: block;
+  font-size: 0.85rem;
+  color: #656d76;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.capacity-value, .usage-value {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #24292f;
+}
+
+.quota-progress-bar {
+  margin: 2rem 0;
+}
+
+.progress-track {
+  background-color: #f3f4f6;
+  border-radius: 1rem;
+  height: 1rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #28a745 0%, #40e263 100%);
+  border-radius: 1rem;
+  transition: width 0.5s ease;
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: #656d76;
+}
+
+.quota-info {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.quota-status {
+  margin: 0 0 1rem 0;
+  padding: 0.75rem;
+  background-color: #f6f8fa;
+  border-radius: 0.375rem;
+  color: #24292f;
+  font-size: 0.9rem;
+}
+
+.quota-note {
+  margin: 0;
+  font-size: 1rem;
+  color: #0969da;
+  font-weight: 500;
+}
+
+.quota-modal-footer {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 1.5rem 1.5rem;
+  border-top: 1px solid #e1e4e8;
+}
+
+.quota-ok-btn {
+  background-color: #0969da;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.quota-ok-btn:hover {
+  background-color: #0860ca;
+  transform: translateY(-1px);
+}
+
+/* Error styles */
+.quota-modal-content.error .quota-modal-header {
+  background-color: #fef2f2;
+  border-bottom-color: #fca5a5;
+}
+
+.error-content {
+  text-align: center;
+}
+
+.error-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.error-message {
+  color: #dc2626;
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.error-suggestions {
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 0.375rem;
+  padding: 1rem;
+  text-align: left;
+}
+
+.error-suggestions p {
+  margin: 0 0 0.5rem 0;
+  color: #92400e;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.error-suggestions ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #78350f;
+}
+
+.error-suggestions li {
+  margin-bottom: 0.25rem;
+  font-size: 0.85rem;
 }

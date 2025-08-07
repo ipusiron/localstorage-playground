@@ -15,6 +15,7 @@
   <nav class="tabs">
     <button class="tab-button active" data-tab="storage">🗃 ストレージ操作</button>
     <button class="tab-button" data-tab="xss">💥 XSSデモ</button>
+    <button class="tab-button" data-tab="defense">🛡️ 防御デモ</button>
     <button class="tab-button" data-tab="learn">📖 学習</button>
   </nav>
 
@@ -61,9 +62,16 @@
     <section id="xss" class="tab-content">
       <h2>💥 XSSによるlocalStorage盗難のデモ</h2>
       <p>下のフィールドに悪意あるスクリプトを入力して「実行」すると、localStorageからデータを盗む動作を再現できます（※安全な環境内のみで実行してください）。</p>
-      <textarea id="xssInput" placeholder='例: alert(localStorage.getItem("token"))'></textarea>
-      <button onclick="runXSS()">実行</button>
+      <div class="xss-input-section">
+        <textarea id="xssInput" placeholder='例: alert(localStorage.getItem("token"))'></textarea>
+        <button class="xss-execute-btn" onclick="runXSS()">🚀 実行</button>
+      </div>
       <div id="xssResult" class="xss-output"></div>
+    </section>
+
+    <section id="defense" class="tab-content">
+      <h2>🛡️ セキュリティ防御デモンストレーション</h2>
+      <p>XSS攻撃に対する主要な防御手法の効果を実際に確認できます。各防御策がどのように攻撃を無効化するかを体験してください。</p>
     </section>
 
     <section id="learn" class="tab-content">

@@ -1,6 +1,7 @@
 import { TabManager } from './modules/tabs.js';
 import { StorageManager } from './modules/storage.js';
 import { XSSDemo } from './modules/xss.js';
+import { DefenseDemo } from './modules/defense.js';
 import { LearnSection } from './modules/learn.js';
 
 class LocalStoragePlayground {
@@ -8,6 +9,7 @@ class LocalStoragePlayground {
     this.tabManager = new TabManager();
     this.storageManager = new StorageManager();
     this.xssDemo = new XSSDemo();
+    this.defenseDemo = new DefenseDemo();
     this.learnSection = new LearnSection();
   }
 
@@ -16,6 +18,7 @@ class LocalStoragePlayground {
       this.tabManager.init();
       this.storageManager.init();
       this.xssDemo.init();
+      this.defenseDemo.init();
       this.learnSection.init();
       
       this.addGlobalEventListeners();

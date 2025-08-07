@@ -1031,8 +1031,8 @@ export class StorageManager {
           <div class="stat-card local-stats">
             <div class="stat-header">
               <span class="stat-title">📦 localStorage</span>
-              <button class="export-btn" onclick="storageManager.exportData('local')" title="エクスポート">
-                📤
+              <button class="export-btn" onclick="storageManager.exportData('local')" title="データをエクスポート">
+                💾 書き出し
               </button>
             </div>
             <div class="stat-content">
@@ -1049,8 +1049,8 @@ export class StorageManager {
           <div class="stat-card session-stats">
             <div class="stat-header">
               <span class="stat-title">⏳ sessionStorage</span>
-              <button class="export-btn" onclick="storageManager.exportData('session')" title="エクスポート">
-                📤
+              <button class="export-btn" onclick="storageManager.exportData('session')" title="データをエクスポート">
+                💾 書き出し
               </button>
             </div>
             <div class="stat-content">
@@ -1184,7 +1184,7 @@ export class StorageManager {
       <div class="export-modal-overlay" onclick="storageManager.closeExportModal()"></div>
       <div class="export-modal-content">
         <div class="export-modal-header">
-          <h3>📤 データエクスポート</h3>
+          <h3>💾 データエクスポート</h3>
           <button class="export-modal-close" onclick="storageManager.closeExportModal()" title="閉じる">✕</button>
         </div>
         <div class="export-modal-body">
@@ -1282,13 +1282,18 @@ export class StorageManager {
     
     let content, filename, mimeType;
     
+    const now = new Date();
+    // 日本時間（JST = UTC+9）に変換
+    const jstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+    const dateTimeString = jstDate.toISOString().slice(0, 19).replace(/[T:]/g, '_');
+    
     if (selectedFormat === 'json') {
       content = JSON.stringify(data, null, 2);
-      filename = `${storageType}Storage_${new Date().toISOString().slice(0, 10)}.json`;
+      filename = `${storageType}Storage_${dateTimeString}.json`;
       mimeType = 'application/json';
     } else if (selectedFormat === 'csv') {
       content = this.convertToCSV(data);
-      filename = `${storageType}Storage_${new Date().toISOString().slice(0, 10)}.csv`;
+      filename = `${storageType}Storage_${dateTimeString}.csv`;
       mimeType = 'text/csv';
     }
     
@@ -1461,14 +1466,21 @@ export class StorageManager {
     // イベントハンドラーを失わないようにDOM要素を直接追加
     const exampleGrid = examplesContainer.querySelector(".example-grid");
     
-    this.interactiveExamples.forEach(example => {
+    this.interactiveExamples.forEach((example, index) => {
       const exampleDiv = document.createElement("div");
       exampleDiv.className = "example-item";
       
       const button = document.createElement("button");
       button.textContent = example.title;
       button.className = "demo-button";
-      button.onclick = example.action;
+      button.id = `demo-button-${index}`;
+      
+      // イベントリスナーを適切に設定
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log(`Executing: ${example.title}`);
+        example.action.call(this);
+      });
       
       const description = document.createElement("p");
       description.textContent = example.description;
@@ -1586,104 +1598,98 @@ export class StorageManager {
   }
 
   showQuotaResultDialog(result) {
-    // 既存のクォータダイアログがあれば削除
-    const existingDialog = document.querySelector('.quota-result-dialog');
+    // 既存のモーダルがあれば削除
+    const existingDialog = document.querySelector('.quota-result-modal');
     if (existingDialog) {
       existingDialog.remove();
     }
 
-    const dialog = document.createElement('div');
-    dialog.className = 'quota-result-dialog';
+    const modal = document.createElement('div');
+    modal.className = 'quota-result-modal';
     
     if (result.success) {
-      // 成功時の表示
-      dialog.innerHTML = `
-        <div class="quota-result-overlay" onclick="storageManager.closeQuotaResultDialog()"></div>
-        <div class="quota-result-content">
-          <div class="quota-result-header">
-            <h3>📊 LocalStorage容量制限テスト結果</h3>
-            <button class="quota-result-close" onclick="storageManager.closeQuotaResultDialog()" title="閉じる">✕</button>
+      modal.innerHTML = `
+        <div class="quota-modal-overlay" onclick="storageManager.closeQuotaResultDialog()"></div>
+        <div class="quota-modal-content">
+          <div class="quota-modal-header">
+            <h3>📊 容量制限テスト結果</h3>
+            <button class="quota-modal-close" onclick="storageManager.closeQuotaResultDialog()" title="閉じる">✕</button>
           </div>
-          <div class="quota-result-body">
-            <div class="quota-stats-grid">
-              <div class="quota-stat-item success">
-                <div class="quota-stat-icon">✅</div>
-                <div class="quota-stat-info">
-                  <div class="quota-stat-label">最大容量</div>
-                  <div class="quota-stat-value">約${result.maxMB}MB</div>
+          <div class="quota-modal-body">
+            <div class="quota-summary">
+              <div class="quota-main-stat">
+                <div class="quota-capacity">
+                  <span class="capacity-label">利用可能容量</span>
+                  <span class="capacity-value">約 ${result.maxMB}MB</span>
+                </div>
+                <div class="quota-usage">
+                  <span class="usage-label">現在の使用量</span>
+                  <span class="usage-value">${result.currentMB}MB (${((parseFloat(result.currentMB) / parseFloat(result.maxMB)) * 100).toFixed(1)}%)</span>
                 </div>
               </div>
-              <div class="quota-stat-item current">
-                <div class="quota-stat-icon">📝</div>
-                <div class="quota-stat-info">
-                  <div class="quota-stat-label">現在使用量</div>
-                  <div class="quota-stat-value">${result.currentMB}MB</div>
-                </div>
-              </div>
-              <div class="quota-stat-item available">
-                <div class="quota-stat-icon">🆓</div>
-                <div class="quota-stat-info">
-                  <div class="quota-stat-label">利用可能</div>
-                  <div class="quota-stat-value">約${result.availableMB}MB</div>
-                </div>
-              </div>
-            </div>
-            <div class="quota-result-note">
-              <p class="quota-note-text">
-                ${result.hasExistingData 
-                  ? '📁 既存データがあるため、実際に保存できる容量は制限されています。' 
-                  : '🌍 ブラウザの標準的な容量制限です。'
-                }
-              </p>
-            </div>
-            <div class="quota-progress-container">
-              <div class="quota-progress-label">使用率</div>
+              
               <div class="quota-progress-bar">
-                <div class="quota-progress-fill" style="width: ${((parseFloat(result.currentMB) / parseFloat(result.maxMB)) * 100).toFixed(1)}%"></div>
+                <div class="progress-track">
+                  <div class="progress-fill" style="width: ${Math.min(((parseFloat(result.currentMB) / parseFloat(result.maxMB)) * 100), 100).toFixed(1)}%"></div>
+                </div>
+                <div class="progress-labels">
+                  <span>0MB</span>
+                  <span>${result.maxMB}MB</span>
+                </div>
               </div>
-              <div class="quota-progress-text">${((parseFloat(result.currentMB) / parseFloat(result.maxMB)) * 100).toFixed(1)}%</div>
+              
+              <div class="quota-info">
+                <p class="quota-status">
+                  ${result.hasExistingData 
+                    ? '📁 既存データが保存されています' 
+                    : '💡 新規テスト環境です'
+                  }
+                </p>
+                <p class="quota-note">
+                  残り約 <strong>${result.availableMB}MB</strong> 利用可能
+                </p>
+              </div>
             </div>
           </div>
-          <div class="quota-result-footer">
+          <div class="quota-modal-footer">
             <button class="quota-ok-btn" onclick="storageManager.closeQuotaResultDialog()">
-              ✅ OK
+              📋 確認
             </button>
           </div>
         </div>
       `;
     } else {
-      // エラー時の表示
-      dialog.innerHTML = `
-        <div class="quota-result-overlay" onclick="storageManager.closeQuotaResultDialog()"></div>
-        <div class="quota-result-content error">
-          <div class="quota-result-header">
-            <h3>❌ 容量テストエラー</h3>
-            <button class="quota-result-close" onclick="storageManager.closeQuotaResultDialog()" title="閉じる">✕</button>
+      modal.innerHTML = `
+        <div class="quota-modal-overlay" onclick="storageManager.closeQuotaResultDialog()"></div>
+        <div class="quota-modal-content error">
+          <div class="quota-modal-header">
+            <h3>❌ テストエラー</h3>
+            <button class="quota-modal-close" onclick="storageManager.closeQuotaResultDialog()" title="閉じる">✕</button>
           </div>
-          <div class="quota-result-body">
-            <div class="quota-error-message">
-              <div class="quota-error-icon">⚠️</div>
-              <p>${result.error}</p>
-            </div>
-            <div class="quota-error-suggestions">
-              <h4>推奨される対処方法:</h4>
-              <ul>
-                <li>ブラウザを再起動して再度お試しください</li>
-                <li>他のタブやウィンドウを閉じてください</li>
-                <li>プライベートモードでお試しください</li>
-              </ul>
+          <div class="quota-modal-body">
+            <div class="error-content">
+              <div class="error-icon">⚠️</div>
+              <p class="error-message">${result.error}</p>
+              <div class="error-suggestions">
+                <p><strong>推奨対処法:</strong></p>
+                <ul>
+                  <li>ブラウザを再起動してください</li>
+                  <li>プライベートモードでお試しください</li>
+                  <li>他のタブを閉じてください</li>
+                </ul>
+              </div>
             </div>
           </div>
-          <div class="quota-result-footer">
+          <div class="quota-modal-footer">
             <button class="quota-ok-btn" onclick="storageManager.closeQuotaResultDialog()">
-              ✅ 閉じる
+              閉じる
             </button>
           </div>
         </div>
       `;
     }
 
-    document.body.appendChild(dialog);
+    document.body.appendChild(modal);
     
     // ESCキーで閉じる
     const handleEscape = (e) => {
@@ -1696,9 +1702,9 @@ export class StorageManager {
   }
 
   closeQuotaResultDialog() {
-    const dialog = document.querySelector('.quota-result-dialog');
-    if (dialog) {
-      dialog.remove();
+    const modal = document.querySelector('.quota-result-modal');
+    if (modal) {
+      modal.remove();
     }
   }
 }

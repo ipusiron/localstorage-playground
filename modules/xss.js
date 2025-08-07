@@ -58,7 +58,6 @@ export class XSSDemo {
     window.runXSS = () => this.runXSS();
     this.addExampleButtons();
     this.addWarning();
-    this.addDefenseDemo();
   }
 
   addWarning() {
@@ -157,6 +156,7 @@ export class XSSDemo {
     }
 
     this.clearResult();
+    this.ensureDemoData(input);
     this.showExecutionSteps(input);
     
     try {
@@ -189,10 +189,21 @@ export class XSSDemo {
       
       if (alertContent !== null) {
         this.showResult(`alert内容: ${alertContent}`, "alert");
-      } else if (result !== undefined) {
-        this.showResult(`実行結果: ${this.formatResult(result)}`, "success");
       } else {
-        this.showResult("実行完了（結果なし）", "info");
+        // 外部送信攻撃の場合（fetch使用を優先判定）
+        if (input.includes('fetch(') && (input.includes('localStorage') || input.includes('sessionStorage'))) {
+          this.showResult("⚠️ 外部送信攻撃を実行しました（セキュリティ機能により通信はブロック済み）", "alert");
+        }
+        // setItem系の攻撃の場合
+        else if (input.includes('localStorage.setItem') || input.includes('sessionStorage.setItem')) {
+          this.showResult("✅ 攻撃スクリプトの実行が完了しました（データがストレージに書き込まれました）", "success");
+        }
+        // 通常の結果表示
+        else if (result !== undefined) {
+          this.showResult(`実行結果: ${this.formatResult(result)}`, "success");
+        } else {
+          this.showResult("実行完了（結果なし）", "info");
+        }
       }
       
     } catch (e) {
@@ -345,6 +356,51 @@ export class XSSDemo {
     console.warn(`セキュリティイベント [${type}]:`, data);
   }
 
+  ensureDemoData(script) {
+    // 基本的な攻撃デモ用のサンプルデータを自動で準備
+    if (script.includes('localStorage.getItem("token")') && !localStorage.getItem("token")) {
+      localStorage.setItem("token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.demo_user_token");
+      this.showDataPreparationNotice("token");
+    }
+    
+    if (script.includes('sessionStorage.getItem("user_data")') && !sessionStorage.getItem("user_data")) {
+      sessionStorage.setItem("user_data", JSON.stringify({
+        userId: 12345,
+        username: "demo_user",
+        email: "demo@example.com",
+        role: "user"
+      }));
+      this.showDataPreparationNotice("user_data");
+    }
+    
+    // 全データ取得系の攻撃の場合、複数のサンプルデータを準備
+    if ((script.includes('Object.keys(localStorage)') || script.includes('JSON.stringify(localStorage)')) 
+        && localStorage.length === 0) {
+      localStorage.setItem("token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.demo_jwt_token");
+      localStorage.setItem("user_id", "12345");
+      localStorage.setItem("preferences", JSON.stringify({theme: "dark", lang: "ja"}));
+      this.showDataPreparationNotice("multiple items");
+    }
+  }
+
+  showDataPreparationNotice(dataType) {
+    const notice = document.createElement('div');
+    notice.className = 'data-preparation-notice';
+    notice.innerHTML = `
+      <div class="notice-content">
+        <span class="notice-icon">📋</span>
+        <span class="notice-text">デモ用に "${dataType}" をlocalStorageに自動追加しました</span>
+      </div>
+    `;
+    
+    this.xssResult.parentNode.insertBefore(notice, this.xssResult);
+    
+    // 3秒後に自動で削除
+    setTimeout(() => {
+      notice.remove();
+    }, 3000);
+  }
+
   formatResult(result) {
     if (result === null) return "null";
     if (result === undefined) return "undefined";
@@ -377,151 +433,6 @@ export class XSSDemo {
     const explanationDiv = document.querySelector('.script-explanation-active');
     if (explanationDiv) explanationDiv.remove();
     
-    const defenseDiv = document.querySelector('.defense-demo');
-    if (defenseDiv) defenseDiv.remove();
   }
 
-  addDefenseDemo() {
-    const defenseSection = document.createElement('div');
-    defenseSection.className = 'defense-demo';
-    defenseSection.innerHTML = `
-      <h3>🛡️ 防御デモンストレーション</h3>
-      <div class="defense-examples">
-        <div class="defense-card">
-          <h4>📋 CSP (Content Security Policy)</h4>
-          <p>適切なCSPヘッダーでXSS攻撃を防ぐ</p>
-          <button class="defense-btn" onclick="window.xssDemo.demonstrateCSP()">CSP効果を確認</button>
-        </div>
-        
-        <div class="defense-card">
-          <h4>🔐 HttpOnly Cookie</h4>
-          <p>JavaScriptからアクセスできない安全なCookie</p>
-          <button class="defense-btn" onclick="window.xssDemo.demonstrateHttpOnly()">HttpOnly効果を確認</button>
-        </div>
-        
-        <div class="defense-card">
-          <h4>🧹 入力サニタイゼーション</h4>
-          <p>危険な文字をエスケープして攻撃を無効化</p>
-          <button class="defense-btn" onclick="window.xssDemo.demonstrateSanitization()">サニタイゼーション効果を確認</button>
-        </div>
-      </div>
-    `;
-    
-    const xssSection = document.getElementById('xss');
-    xssSection.appendChild(defenseSection);
-    
-    window.xssDemo = this;
-  }
-
-  demonstrateCSP() {
-    const demoDiv = document.createElement('div');
-    demoDiv.className = 'defense-result';
-    demoDiv.innerHTML = `
-      <h4>📋 CSP防御デモ結果</h4>
-      <div class="defense-comparison">
-        <div class="before-defense">
-          <h5>❌ CSPなし（脆弱）</h5>
-          <code>// インラインスクリプトが実行される
-&lt;script&gt;alert(localStorage.token)&lt;/script&gt;</code>
-          <p class="vulnerability">→ 攻撃成功: トークンが盗まれる</p>
-        </div>
-        
-        <div class="after-defense">
-          <h5>✅ CSP適用後（安全）</h5>
-          <code>Content-Security-Policy: script-src 'self'</code>
-          <p class="protection">→ 攻撃失敗: インラインスクリプト実行がブロックされる</p>
-        </div>
-      </div>
-      <div class="implementation-guide">
-        <h5>実装方法:</h5>
-        <code>&lt;meta http-equiv="Content-Security-Policy" 
-      content="default-src 'self'; script-src 'self'"&gt;</code>
-      </div>
-    `;
-    
-    this.showDefenseResult(demoDiv);
-  }
-
-  demonstrateHttpOnly() {
-    const demoDiv = document.createElement('div');
-    demoDiv.className = 'defense-result';
-    demoDiv.innerHTML = `
-      <h4>🔐 HttpOnly Cookie 防御デモ結果</h4>
-      <div class="defense-comparison">
-        <div class="before-defense">
-          <h5>❌ 通常のCookie（脆弱）</h5>
-          <code>document.cookie = "token=abc123"
-console.log(document.cookie) // "token=abc123"</code>
-          <p class="vulnerability">→ 攻撃成功: JSからCookieにアクセス可能</p>
-        </div>
-        
-        <div class="after-defense">
-          <h5>✅ HttpOnly Cookie（安全）</h5>
-          <code>Set-Cookie: token=abc123; HttpOnly; Secure
-console.log(document.cookie) // ""（空文字）</code>
-          <p class="protection">→ 攻撃失敗: JSからCookieにアクセス不可</p>
-        </div>
-      </div>
-      <div class="implementation-guide">
-        <h5>実装方法（サーバーサイド）:</h5>
-        <code>res.setHeader('Set-Cookie', 
-  'token=abc123; HttpOnly; Secure; SameSite=Strict');</code>
-      </div>
-    `;
-    
-    this.showDefenseResult(demoDiv);
-  }
-
-  demonstrateSanitization() {
-    const maliciousInput = '<script>alert("XSS")</script><img src="x" onerror="alert(\'XSS\')">';
-    const sanitizedInput = this.sanitizeInput(maliciousInput);
-    
-    const demoDiv = document.createElement('div');
-    demoDiv.className = 'defense-result';
-    demoDiv.innerHTML = `
-      <h4>🧹 入力サニタイゼーション防御デモ結果</h4>
-      <div class="defense-comparison">
-        <div class="before-defense">
-          <h5>❌ サニタイゼーションなし（脆弱）</h5>
-          <code>innerHTML = "${maliciousInput}"</code>
-          <p class="vulnerability">→ 攻撃成功: スクリプトが実行される</p>
-        </div>
-        
-        <div class="after-defense">
-          <h5>✅ サニタイゼーション後（安全）</h5>
-          <code>innerHTML = "${sanitizedInput}"</code>
-          <p class="protection">→ 攻撃失敗: 危険な文字がエスケープされる</p>
-        </div>
-      </div>
-      <div class="implementation-guide">
-        <h5>実装方法:</h5>
-        <code>// DOMPurifyライブラリ使用例
-const clean = DOMPurify.sanitize(userInput);
-element.innerHTML = clean;</code>
-      </div>
-    `;
-    
-    this.showDefenseResult(demoDiv);
-  }
-
-  sanitizeInput(input) {
-    return input
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#x27;');
-  }
-
-  showDefenseResult(demoDiv) {
-    const existingResult = document.querySelector('.defense-result');
-    if (existingResult) {
-      existingResult.remove();
-    }
-    
-    const defenseDemo = document.querySelector('.defense-demo');
-    defenseDemo.appendChild(demoDiv);
-    
-    demoDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
 }
