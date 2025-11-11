@@ -100,7 +100,7 @@ console.log(document.cookie) // ""（空文字）</code>
   demonstrateSanitization() {
     const maliciousInput = '<script>alert("XSS")</script><img src="x" onerror="alert(\'XSS\')">';
     const sanitizedInput = this.sanitizeInput(maliciousInput);
-    
+
     const demoDiv = document.createElement('div');
     demoDiv.className = 'defense-result';
     demoDiv.innerHTML = `
@@ -110,12 +110,13 @@ console.log(document.cookie) // ""（空文字）</code>
           <h5>❌ サニタイゼーションなし（脆弱）</h5>
           <code>innerHTML = "${this.escapeForDisplay(maliciousInput)}"</code>
           <div class="demo-output vulnerable">
-            <strong>実際の出力（危険）:</strong>
-            <div class="output-sample">${maliciousInput}</div>
+            <strong>想定される危険な動作:</strong>
+            <div class="output-sample-text">⚠️ 実環境では alert("XSS") が実行され、悪意あるスクリプトが動作します</div>
+            <div class="code-preview">${this.escapeForDisplay(maliciousInput)}</div>
           </div>
-          <p class="vulnerability">→ 攻撃成功: スクリプトが実行される</p>
+          <p class="vulnerability">→ 攻撃成功: スクリプトが実行される（デモでは安全のため実行をスキップ）</p>
         </div>
-        
+
         <div class="after-defense">
           <h5>✅ サニタイゼーション後（安全）</h5>
           <code>innerHTML = "${sanitizedInput}"</code>
@@ -133,7 +134,7 @@ const clean = DOMPurify.sanitize(userInput);
 element.innerHTML = clean;</code>
       </div>
     `;
-    
+
     this.showDefenseResult(demoDiv);
   }
 

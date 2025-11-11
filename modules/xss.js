@@ -161,31 +161,88 @@ export class XSSDemo {
     
     try {
       console.log("XSSデモ実行:", input);
-      
+
       const originalAlert = window.alert;
       const originalFetch = window.fetch;
+      const originalXMLHttpRequest = window.XMLHttpRequest;
+      const originalWebSocket = window.WebSocket;
+      const originalImage = window.Image;
+      const originalSendBeacon = navigator.sendBeacon;
       let alertContent = null;
       let fetchAttempts = [];
-      
+      let blockedRequests = [];
+
+      // thisのコンテキストを保存
+      const self = this;
+
       window.alert = (msg) => {
         alertContent = msg;
-        this.logSecurityEvent("ALERT_CALLED", { message: msg });
+        self.logSecurityEvent("ALERT_CALLED", { message: msg });
       };
-      
+
       window.fetch = (url, options) => {
         fetchAttempts.push({ url, options });
-        this.logSecurityEvent("EXTERNAL_REQUEST_BLOCKED", { url, options });
+        self.logSecurityEvent("EXTERNAL_REQUEST_BLOCKED", { url, options });
         return Promise.reject(new Error("セキュリティ: 外部送信をブロックしました"));
       };
-      
+
+      // XMLHttpRequestをブロック
+      window.XMLHttpRequest = class {
+        open() {
+          blockedRequests.push({ type: 'XMLHttpRequest', args: arguments });
+        }
+        send() {
+          self.logSecurityEvent("EXTERNAL_REQUEST_BLOCKED", { type: 'XMLHttpRequest' });
+        }
+        setRequestHeader() {}
+      };
+
+      // WebSocketをブロック
+      window.WebSocket = class {
+        constructor(url) {
+          blockedRequests.push({ type: 'WebSocket', url });
+          self.logSecurityEvent("EXTERNAL_REQUEST_BLOCKED", { type: 'WebSocket', url });
+          throw new Error("セキュリティ: WebSocket接続をブロックしました");
+        }
+      };
+
+      // Imageの外部URLをブロック
+      window.Image = class extends originalImage {
+        set src(value) {
+          if (value && (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('//'))) {
+            blockedRequests.push({ type: 'Image', src: value });
+            self.logSecurityEvent("EXTERNAL_REQUEST_BLOCKED", { type: 'Image', src: value });
+            // 外部URLはブロック（何もしない）
+          } else {
+            // 相対URLやdata:URIは許可
+            super.src = value;
+          }
+        }
+        get src() { return super.src; }
+      };
+
+      // navigator.sendBeaconをブロック
+      navigator.sendBeacon = (url, data) => {
+        blockedRequests.push({ type: 'sendBeacon', url, data });
+        self.logSecurityEvent("EXTERNAL_REQUEST_BLOCKED", { type: 'sendBeacon', url });
+        return false;
+      };
+
       const beforeStorage = this.captureStorageSnapshot();
       const result = eval(input);
       const afterStorage = this.captureStorageSnapshot();
-      
+
+      // すべてのオーバーライドを元に戻す
       window.alert = originalAlert;
       window.fetch = originalFetch;
-      
-      this.analyzeSecurityImpact(beforeStorage, afterStorage, fetchAttempts);
+      window.XMLHttpRequest = originalXMLHttpRequest;
+      window.WebSocket = originalWebSocket;
+      window.Image = originalImage;
+      navigator.sendBeacon = originalSendBeacon;
+
+      // 全ての試行をカウント
+      const totalBlockedRequests = fetchAttempts.length + blockedRequests.length;
+      this.analyzeSecurityImpact(beforeStorage, afterStorage, totalBlockedRequests);
       
       if (alertContent !== null) {
         this.showResult(`alert内容: ${alertContent}`, "alert");
@@ -258,13 +315,13 @@ export class XSSDemo {
     return snapshot;
   }
 
-  analyzeSecurityImpact(before, after, fetchAttempts) {
+  analyzeSecurityImpact(before, after, totalBlockedRequests) {
     const changes = {
       localStorage: this.compareStorageObjects(before.localStorage, after.localStorage),
       sessionStorage: this.compareStorageObjects(before.sessionStorage, after.sessionStorage),
-      externalRequests: fetchAttempts.length
+      externalRequests: totalBlockedRequests
     };
-    
+
     this.displaySecurityAnalysis(changes);
   }
 
