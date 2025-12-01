@@ -1,3 +1,40 @@
+<!--
+---
+id: day038
+slug: localstorage-playground
+
+title: "LocalStorage Playground"
+
+subtitle_ja: "Webストレージの危険性体験ツール"
+subtitle_en: "Interactive Web Storage Security Learning Tool"
+
+description_ja: "localStorage/sessionStorageのセキュリティリスクを実践的に学習できる教育ツール。XSS攻撃のシミュレーション、防御手法の比較、ストレージ操作の体験が可能。"
+description_en: "An educational tool for hands-on learning about localStorage/sessionStorage security risks. Features XSS attack simulations, defense technique comparisons, and interactive storage operations."
+
+category_ja:
+  - Webセキュリティ
+category_en:
+  - Web Security
+  - Education
+
+difficulty: 2
+
+tags:
+  - XSS
+  - localStorage
+  - sessionStorage
+  - Web Storage API
+  - CSP
+  - HttpOnly Cookie
+  - JavaScript
+
+repo_url: "https://github.com/ipusiron/localstorage-playground"
+demo_url: "https://ipusiron.github.io/localstorage-playground/"
+
+hub: true
+---
+-->
+
 # LocalStorage Playground - Webストレージの危険性の学習・体験ツール
 
 ![GitHub Repo stars](https://img.shields.io/github/stars/ipusiron/localstorage-playground?style=social)
