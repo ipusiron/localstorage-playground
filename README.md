@@ -15,7 +15,6 @@ category_ja:
   - Webセキュリティ
 category_en:
   - Web Security
-  - Education
 
 difficulty: 2
 
