@@ -4,82 +4,66 @@ class LearnSection {
   }
 
   init() {
-    console.log("LearnSection init called");
     this.enhanceLearnSection();
   }
 
+  // 文言は辞書から取り、DOMとして組み立てる。
+  // 表の見出しと中身は配列で持ち、日英で同じ構造になるようにする。
   enhanceLearnSection() {
     const learnSection = document.getElementById("learn");
-    console.log("Learn section element:", learnSection);
-    
+    const t = (key) => window.i18n.t(key);
+
     const additionalContent = document.createElement("div");
     additionalContent.className = "learn-enhanced";
-    additionalContent.innerHTML = `
-      <h3>🔒 セキュリティベストプラクティス</h3>
-      <ul class="best-practices">
-        <li>
-          <strong>機密情報を保存しない:</strong>
-          <span>トークン、パスワード、個人情報はlocalStorageに保存すべきではありません</span>
-        </li>
-        <li>
-          <strong>HttpOnly Cookieの使用:</strong>
-          <span>認証トークンはHttpOnly属性付きのCookieで管理しましょう</span>
-        </li>
-        <li>
-          <strong>データの暗号化:</strong>
-          <span>やむを得ず保存する場合は、適切に暗号化してください</span>
-        </li>
-        <li>
-          <strong>定期的なクリーンアップ:</strong>
-          <span>不要になったデータは速やかに削除しましょう</span>
-        </li>
-      </ul>
 
-      <h3>📊 ストレージ比較表</h3>
-      <table class="storage-comparison">
-        <thead>
-          <tr>
-            <th>特性</th>
-            <th>localStorage</th>
-            <th>sessionStorage</th>
-            <th>Cookie (HttpOnly)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>永続性</td>
-            <td>永続的</td>
-            <td>タブを閉じるまで</td>
-            <td>期限設定可能</td>
-          </tr>
-          <tr>
-            <td>容量</td>
-            <td>5-10MB</td>
-            <td>5-10MB</td>
-            <td>4KB</td>
-          </tr>
-          <tr>
-            <td>JSアクセス</td>
-            <td>✅ 可能</td>
-            <td>✅ 可能</td>
-            <td>❌ 不可</td>
-          </tr>
-          <tr>
-            <td>XSS耐性</td>
-            <td>❌ 脆弱</td>
-            <td>❌ 脆弱</td>
-            <td>✅ 保護</td>
-          </tr>
-          <tr>
-            <td>サーバー送信</td>
-            <td>❌ なし</td>
-            <td>❌ なし</td>
-            <td>✅ 自動</td>
-          </tr>
-        </tbody>
-      </table>
-    `;
-    
+    const practicesHeading = document.createElement("h3");
+    practicesHeading.textContent = t("learn.practicesHeading");
+
+    const practices = document.createElement("ul");
+    practices.className = "best-practices";
+    for (const name of ["noSecrets", "httpOnly", "encrypt", "cleanup"]) {
+      const item = document.createElement("li");
+      const label = document.createElement("strong");
+      label.textContent = t(`learn.practice.${name}.label`);
+      const body = document.createElement("span");
+      body.textContent = t(`learn.practice.${name}.body`);
+      item.append(label, document.createTextNode(" "), body);
+      practices.appendChild(item);
+    }
+
+    const tableHeading = document.createElement("h3");
+    tableHeading.textContent = t("learn.tableHeading");
+
+    const table = document.createElement("table");
+    table.className = "storage-comparison";
+
+    const head = document.createElement("thead");
+    const headRow = document.createElement("tr");
+    for (const key of ["learn.table.aspect", "learn.table.local", "learn.table.session", "learn.table.cookie"]) {
+      const cell = document.createElement("th");
+      cell.scope = "col";
+      cell.textContent = t(key);
+      headRow.appendChild(cell);
+    }
+    head.appendChild(headRow);
+
+    const body = document.createElement("tbody");
+    for (const row of ["persistence", "capacity", "jsAccess", "xssResistance", "sentToServer"]) {
+      const tr = document.createElement("tr");
+      const aspect = document.createElement("th");
+      aspect.scope = "row";
+      aspect.textContent = t(`learn.row.${row}.aspect`);
+      tr.appendChild(aspect);
+      for (const column of ["local", "session", "cookie"]) {
+        const cell = document.createElement("td");
+        cell.textContent = t(`learn.row.${row}.${column}`);
+        tr.appendChild(cell);
+      }
+      body.appendChild(tr);
+    }
+
+    table.append(head, body);
+    additionalContent.append(practicesHeading, practices, tableHeading, table);
     learnSection.appendChild(additionalContent);
   }
 }

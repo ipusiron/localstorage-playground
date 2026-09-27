@@ -48,6 +48,30 @@ input[type="search"] {
   height: 1.15rem;
 }
 
+
+/* 言語切り替え */
+.language-switch {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 1rem;
+}
+
+.language-button {
+  min-height: 2.75rem;
+  padding: 0.4rem 1rem;
+  background-color: #ffffff;
+  color: #24292e;
+  border: 1px solid #b1b7bd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.language-button:hover,
+.language-button:focus-visible {
+  background-color: #eef1f4;
+}
+
 header {
   text-align: center;
   padding: 1.5rem 1rem 0.5rem;
@@ -1375,6 +1399,14 @@ footer {
   margin: 0 0 0.5rem 0;
   color: #004085;
   font-size: 0.9rem;
+}
+
+.implementation-guide code,
+.defense-comparison code {
+  display: block;
+  /* textContentで入れた改行をそのまま見せる */
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .implementation-guide code {

@@ -7,18 +7,18 @@ class StorageManager {
     this.sessionList = document.getElementById("sessionList");
     this.interactiveExamples = [
       {
-        title: "永続性テスト",
-        description: "localStorage vs sessionStorageの違いを確認",
+        title: this.t("test.persistence.title"),
+        description: this.t("test.persistence.description"),
         action: () => this.demonstratePersistence()
       },
       {
-        title: "同一オリジンポリシー",
-        description: "ドメイン間のストレージアクセス制限",
+        title: this.t("test.origin.title"),
+        description: this.t("test.origin.description"),
         action: () => this.demonstrateOriginPolicy()
       },
       {
-        title: "容量制限チェック",
-        description: "Web Storageの容量制限を確認",
+        title: this.t("test.quota.title"),
+        description: this.t("test.quota.description"),
         action: () => this.demonstrateQuota()
       }
     ];
@@ -26,8 +26,8 @@ class StorageManager {
     // プリセットデータ定義
     this.presets = {
       userAuth: {
-        name: "🔐 認証情報",
-        description: "一般的な認証関連データ",
+        name: this.t("preset.auth.name"),
+        description: this.t("preset.auth.description"),
         data: {
           jwt_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
           user_id: "user_12345",
@@ -37,11 +37,11 @@ class StorageManager {
         }
       },
       userData: {
-        name: "👤 ユーザー設定",
-        description: "ユーザープロファイルと設定",
+        name: this.t("preset.profile.name"),
+        description: this.t("preset.profile.description"),
         data: {
           user_profile: JSON.stringify({
-            name: "山田太郎",
+            name: this.t("sample.personName"),
             email: "yamada@example.com",
             age: 30,
             preferences: {
@@ -56,12 +56,12 @@ class StorageManager {
         }
       },
       ecommerce: {
-        name: "🛒 ECサイト",
-        description: "ショッピングカート・商品データ",
+        name: this.t("preset.shop.name"),
+        description: this.t("preset.shop.description"),
         data: {
           shopping_cart: JSON.stringify([
-            { id: 1, name: "ノートPC", price: 98000, quantity: 1 },
-            { id: 2, name: "マウス", price: 2980, quantity: 2 }
+            { id: 1, name: this.t("sample.laptop"), price: 98000, quantity: 1 },
+            { id: 2, name: this.t("sample.mouse"), price: 2980, quantity: 2 }
           ]),
           wishlist: JSON.stringify([3, 5, 8, 12]),
           recently_viewed: JSON.stringify(["product_1", "product_2", "product_3"]),
@@ -73,8 +73,8 @@ class StorageManager {
         }
       },
       analytics: {
-        name: "📊 分析データ",
-        description: "トラッキング・分析関連",
+        name: this.t("preset.analytics.name"),
+        description: this.t("preset.analytics.description"),
         data: {
           ga_client_id: "GA1.2.1234567890.1234567890",
           utm_source: "google",
@@ -86,8 +86,8 @@ class StorageManager {
         }
       },
       dangerous: {
-        name: "⚠️ 危険なデータ",
-        description: "セキュリティリスクのあるデータ例",
+        name: this.t("preset.risky.name"),
+        description: this.t("preset.risky.description"),
         data: {
           api_key: "sk-1234567890abcdefghijklmnopqrstuvwxyz",
           database_password: "admin123",
@@ -98,8 +98,8 @@ class StorageManager {
         }
       },
       webapp: {
-        name: "💻 Webアプリ状態",
-        description: "アプリケーションの状態管理",
+        name: this.t("preset.appstate.name"),
+        description: this.t("preset.appstate.description"),
         data: {
           app_state: JSON.stringify({
             currentPage: "dashboard",
@@ -107,8 +107,8 @@ class StorageManager {
             activeTab: "overview"
           }),
           form_draft: JSON.stringify({
-            title: "下書きタイトル",
-            content: "保存された下書き内容...",
+            title: this.t("sample.draftTitle"),
+            content: this.t("sample.draftBody"),
             savedAt: new Date().toISOString()
           }),
           ui_settings: JSON.stringify({
@@ -124,8 +124,8 @@ class StorageManager {
         }
       },
       xssVectors: {
-        name: "💉 XSS攻撃ベクター",
-        description: "XSS脆弱性テスト用データ",
+        name: this.t("preset.xss.name"),
+        description: this.t("preset.xss.description"),
         data: {
           xss_basic: "<script>alert('XSS')</script>",
           xss_img: "<img src=x onerror='alert(\"XSS\")'>",
@@ -136,8 +136,8 @@ class StorageManager {
         }
       },
       performance: {
-        name: "🚀 パフォーマンステスト",
-        description: "大量データ・容量テスト",
+        name: this.t("preset.perf.name"),
+        description: this.t("preset.perf.description"),
         data: {
           large_array: JSON.stringify(new Array(100).fill("data")),
           large_object: JSON.stringify(
@@ -235,7 +235,7 @@ class StorageManager {
 
     const title = document.createElement("span");
     title.className = "collapsible-title";
-    title.textContent = "⚙️ ストレージ操作";
+    title.textContent = this.t("storage.operationsTitle");
 
     const toggle = document.createElement("span");
     toggle.className = "collapsible-toggle";
@@ -308,20 +308,20 @@ class StorageManager {
     searchContainer.className = "search-container";
     searchContainer.innerHTML = `
       <div class="search-box">
-        <input type="text" id="storageSearch" placeholder="🔍 キーまたは値で検索...">
-        <button id="clearSearch" title="検索をクリア">✕</button>
+        <input type="text" id="storageSearch" placeholder="${this.t("search.placeholder")}">
+        <button id="clearSearch" type="button" title="${this.t("search.clearTitle")}" aria-label="${this.t("search.clearTitle")}">✕</button>
       </div>
       <div class="search-filters">
         <label><input type="checkbox" id="filterLocal" checked> localStorage</label>
         <label><input type="checkbox" id="filterSession" checked> sessionStorage</label>
         <select id="typeFilter">
-          <option value="all">すべての型</option>
-          <option value="string">文字列</option>
+          <option value="all">${this.t("filter.all")}</option>
+          <option value="string">${this.t("filter.string")}</option>
           <option value="json">JSON</option>
-          <option value="number">数値</option>
-          <option value="boolean">真偽値</option>
+          <option value="number">${this.t("filter.number")}</option>
+          <option value="boolean">${this.t("filter.boolean")}</option>
           <option value="url">URL</option>
-          <option value="email">メール</option>
+          <option value="email">${this.t("filter.email")}</option>
         </select>
       </div>
     `;
@@ -374,23 +374,23 @@ class StorageManager {
     // プリセットカテゴリの定義
     const presetCategories = {
       common: {
-        name: "📝 一般的なデータ",
-        description: "よく使用される基本的なデータパターン",
+        name: this.t("presetGroup.common.name"),
+        description: this.t("presetGroup.common.description"),
         presets: ['userAuth', 'userData', 'webapp']
       },
       ecommerce: {
-        name: "🛒 Eコマース",
-        description: "オンラインショップ関連のデータ",
+        name: this.t("presetGroup.commerce.name"),
+        description: this.t("presetGroup.commerce.description"),
         presets: ['ecommerce', 'analytics']
       },
       security: {
-        name: "🔒 セキュリティテスト",
-        description: "セキュリティ脆弱性の学習用データ",
+        name: this.t("presetGroup.security.name"),
+        description: this.t("presetGroup.security.description"),
         presets: ['dangerous', 'xssVectors']
       },
       performance: {
-        name: "⚡ パフォーマンス",
-        description: "容量・速度テスト用データ",
+        name: this.t("presetGroup.performance.name"),
+        description: this.t("presetGroup.performance.description"),
         presets: ['performance']
       }
     };
@@ -399,7 +399,7 @@ class StorageManager {
     const presetContainer = document.createElement("div");
     presetContainer.className = "preset-container";
     presetContainer.innerHTML = `
-      <h3>📦 サンプルデータプリセット</h3>
+      <h3>${this.t("preset.heading")}</h3>
       <div class="preset-categories">
         ${Object.entries(presetCategories).map(([categoryKey, category], index) => `
           <button class="preset-category-btn ${index === 0 ? 'active' : ''}" data-category="${categoryKey}">
@@ -430,7 +430,7 @@ class StorageManager {
                       </button>
                     </div>
                     <div class="preset-preview">
-                      <small>含まれるキー: ${Object.keys(preset.data).join(", ")}</small>
+                      <small>${this.t("preset.includedKeys", { keys: Object.keys(preset.data).join(", ") })}</small>
                     </div>
                   </div>
                 `;
@@ -502,8 +502,8 @@ class StorageManager {
     // 確認ダイアログ（危険なデータの場合は特別な警告）
     const isDangerous = presetKey === 'dangerous' || presetKey === 'xssVectors';
     const confirmMessage = isDangerous 
-      ? `⚠️ 警告: このプリセットには機密情報やXSS攻撃ベクターが含まれます。\n${storageType}Storageに「${preset.name}」をロードしますか？`
-      : `${storageType}Storageに「${preset.name}」をロードしますか？`;
+      ? this.t("preset.confirmRisky", { storage: storageType, name: preset.name })
+      : this.t("preset.confirm", { storage: storageType, name: preset.name });
     
     if (!confirm(confirmMessage)) return;
     
@@ -527,7 +527,7 @@ class StorageManager {
     
     // 完了通知
     this.displayNotification(
-      `✅ ${preset.name}を${storageType}Storageにロードしました（${loadedCount}個のキー）`
+      this.t("preset.loaded", { name: preset.name, storage: storageType, count: loadedCount })
     );
     
     // 表示を更新
@@ -613,8 +613,8 @@ class StorageManager {
     // 更新通知を表示
     const storageType = event.storageArea === localStorage ? 'localStorage' : 'sessionStorage';
     const message = event.key 
-      ? `${storageType}: "${event.key}" が更新されました`
-      : `${storageType} がクリアされました`;
+      ? this.t("notify.updated", { storage: storageType, key: event.key })
+      : this.t("notify.cleared", { storage: storageType });
     
     this.displayNotification(message);
   }
@@ -651,7 +651,7 @@ class StorageManager {
     const type = this.storageType.value;
 
     if (!key) {
-      alert("キーを入力してください");
+      alert(this.t("alert.needKey"));
       return;
     }
 
@@ -668,8 +668,8 @@ class StorageManager {
 
   clearStorage(type) {
     const confirmMessage = type === "local" 
-      ? "localStorageを全削除しますか？" 
-      : "sessionStorageを全削除しますか？";
+      ? this.t("confirm.clearLocal") 
+      : this.t("confirm.clearSession");
     
     if (!confirm(confirmMessage)) {
       return;
@@ -699,7 +699,7 @@ class StorageManager {
 
     if (storage.length === 0) {
       const emptyMessage = document.createElement("li");
-      emptyMessage.textContent = "（データなし）";
+      emptyMessage.textContent = this.t("list.empty");
       emptyMessage.className = "storage-empty-message";
       element.appendChild(emptyMessage);
       return;
@@ -739,7 +739,7 @@ class StorageManager {
       
       // ホバー時の視覚的フィードバック
       li.classList.add('storage-item-editable');
-      li.title = 'ダブルクリックで編集';
+      li.title = this.t("list.editHint");
       
       element.appendChild(li);
     }
@@ -846,6 +846,22 @@ class StorageManager {
     return value;
   }
 
+  editItem(key, storageType) {
+    const storage = storageType === "local" ? localStorage : sessionStorage;
+    const currentValue = storage.getItem(key);
+
+    if (currentValue === null) {
+      alert(this.t("alert.keyNotFound", { key }));
+      return;
+    }
+
+    this.showEditModal(key, currentValue, storageType);
+  }
+
+  t(key, params) {
+    return window.i18n.t(key, params);
+  }
+
   createElement(tag, props = {}, children = []) {
     const node = document.createElement(tag);
     for (const [name, value] of Object.entries(props)) {
@@ -879,10 +895,10 @@ class StorageManager {
     const el = (...args) => this.createElement(...args);
     const close = () => this.closeEditModal();
 
-    const keyField = el("input", { type: "text", id: "editKey", placeholder: "キーを入力" });
+    const keyField = el("input", { type: "text", id: "editKey", placeholder: this.t("edit.keyPlaceholder") });
     keyField.value = originalKey;
 
-    const valueField = el("textarea", { id: "editValue", rows: "6", placeholder: "値を入力" });
+    const valueField = el("textarea", { id: "editValue", rows: "6", placeholder: this.t("edit.valuePlaceholder") });
     valueField.value = originalValue;
 
     const content = el("div", {
@@ -892,36 +908,36 @@ class StorageManager {
       "aria-labelledby": "editModalTitle"
     }, [
       el("div", { class: "edit-modal-header" }, [
-        el("h3", { id: "editModalTitle", text: "✏️ データ編集" }),
+        el("h3", { id: "editModalTitle", text: this.t("edit.title") }),
         el("button", {
           class: "edit-modal-close", type: "button",
-          title: "閉じる", "aria-label": "閉じる", text: "✕",
+          title: this.t("common.close"), "aria-label": this.t("common.close"), text: "✕",
           on: { click: close }
         })
       ]),
       el("div", { class: "edit-modal-body" }, [
         el("div", { class: "edit-field" }, [
-          el("label", { for: "editKey", text: "キー:" }),
+          el("label", { for: "editKey", text: this.t("edit.keyLabel") }),
           keyField
         ]),
         el("div", { class: "edit-field" }, [
-          el("label", { for: "editValue", text: "値:" }),
+          el("label", { for: "editValue", text: this.t("edit.valueLabel") }),
           valueField
         ]),
         el("div", { class: "edit-info" }, [
           el("span", { class: "edit-storage-type", text: `${storageType}Storage` }),
-          el("span", { class: "edit-data-size", text: `サイズ: ${new Blob([originalValue]).size} バイト` })
+          el("span", { class: "edit-data-size", text: this.t("edit.size", { bytes: new Blob([originalValue]).size }) })
         ])
       ]),
       el("div", { class: "edit-modal-footer" }, [
         el("button", {
-          class: "edit-delete-btn", type: "button", text: "🗑️ 削除",
+          class: "edit-delete-btn", type: "button", text: this.t("common.delete"),
           on: { click: () => this.confirmDeleteFromModal(originalKey, storageType) }
         }),
         el("div", { class: "edit-footer-right" }, [
-          el("button", { class: "edit-cancel-btn", type: "button", text: "キャンセル", on: { click: close } }),
+          el("button", { class: "edit-cancel-btn", type: "button", text: this.t("common.cancel"), on: { click: close } }),
           el("button", {
-            class: "edit-save-btn", type: "button", text: "💾 保存",
+            class: "edit-save-btn", type: "button", text: this.t("common.save"),
             on: { click: () => this.saveEdit(originalKey, storageType) }
           })
         ])
@@ -964,7 +980,7 @@ class StorageManager {
     const newValue = document.getElementById('editValue').value;
     
     if (!newKey) {
-      alert('キーを入力してください。');
+      alert(this.t("alert.needKey"));
       return;
     }
 
@@ -975,7 +991,7 @@ class StorageManager {
       if (originalKey !== newKey) {
         // 新しいキーが既に存在するかチェック
         if (storage.getItem(newKey) !== null) {
-          if (!confirm(`キー「${newKey}」は既に存在します。上書きしますか？`)) {
+          if (!confirm(this.t("confirm.overwrite", { key: newKey }))) {
             return;
           }
         }
@@ -988,9 +1004,9 @@ class StorageManager {
       // 成功通知
       let message;
       if (originalKey !== newKey) {
-        message = `✅ 「${originalKey}」を「${newKey}」に変更して保存しました`;
+        message = this.t("notify.renamed", { from: originalKey, to: newKey });
       } else {
-        message = `✅ 「${newKey}」を更新しました`;
+        message = this.t("notify.saved", { key: newKey });
       }
       
       this.displayNotification(message);
@@ -998,7 +1014,7 @@ class StorageManager {
       this.refreshDisplay();
       
     } catch (error) {
-      alert(`保存に失敗しました: ${error.message}`);
+      alert(this.t("alert.saveFailed", { message: error.message }));
       console.error('Save edit error:', error);
     }
   }
@@ -1021,24 +1037,24 @@ class StorageManager {
       <div class="delete-confirm-overlay" data-action="close-delete-confirm"></div>
       <div class="delete-confirm-content" role="dialog" aria-modal="true" aria-labelledby="deleteConfirmTitle">
         <div class="delete-confirm-header">
-          <h3 id="deleteConfirmTitle">🗑️ 削除の確認</h3>
+          <h3 id="deleteConfirmTitle">${this.t("delete.title")}</h3>
         </div>
         <div class="delete-confirm-body">
-          <p>以下のデータを削除しますか？</p>
+          <p>${this.t("delete.question")}</p>
           <div class="delete-item-info">
             <div class="delete-key-info">
-              <strong>キー:</strong> <code class="delete-key-name"></code>
+              <strong>${this.t("edit.keyLabel")}</strong> <code class="delete-key-name"></code>
             </div>
             <div class="delete-storage-info">
-              <strong>ストレージ:</strong> ${storageType}Storage
+              <strong>${this.t("delete.storageLabel")}</strong> ${storageType}Storage
             </div>
           </div>
-          <p class="delete-warning">⚠️ この操作は取り消せません</p>
+          <p class="delete-warning">${this.t("delete.warning")}</p>
         </div>
         <div class="delete-confirm-footer">
-          <button class="delete-cancel-btn" type="button" data-action="close-delete-confirm">キャンセル</button>
+          <button class="delete-cancel-btn" type="button" data-action="close-delete-confirm">${this.t("common.cancel")}</button>
           <button class="delete-execute-btn" type="button" data-action="execute-delete">
-            🗑️ 削除する
+            ${this.t("delete.execute")}
           </button>
         </div>
       </div>
@@ -1074,7 +1090,7 @@ class StorageManager {
     
     try {
       storage.removeItem(key);
-      this.displayNotification(`✅ 「${key}」を削除しました`);
+      this.displayNotification(this.t("notify.deleted", { key }));
       
       // モーダルとダイアログを閉じる
       this.closeDeleteConfirmDialog();
@@ -1084,7 +1100,7 @@ class StorageManager {
       this.refreshDisplay();
       
     } catch (error) {
-      alert(`削除に失敗しました: ${error.message}`);
+      alert(this.t("alert.deleteFailed", { message: error.message }));
       console.error('Delete error:', error);
     }
   }
@@ -1098,13 +1114,13 @@ class StorageManager {
     statsContainer.className = "capacity-stats-container";
     statsContainer.innerHTML = `
       <div class="capacity-stats">
-        <h4>📊 ストレージ容量統計</h4>
+        <h4>${this.t("stats.heading")}</h4>
         <div class="stats-grid">
           <div class="stat-card local-stats">
             <div class="stat-header">
               <span class="stat-title">📦 localStorage</span>
-              <button class="export-btn" type="button" data-action="export-data" data-storage="local" title="データをエクスポート">
-                💾 書き出し
+              <button class="export-btn" type="button" data-action="export-data" data-storage="local" title="${this.t("export.buttonTitle")}">
+                ${this.t("export.button")}
               </button>
             </div>
             <div class="stat-content">
@@ -1113,7 +1129,7 @@ class StorageManager {
                 <span class="capacity-text local-text">0 / ~5MB</span>
               </div>
               <div class="stat-details">
-                <span class="item-count local-count">0アイテム</span>
+                <span class="item-count local-count">${this.t("stats.itemCount", { count: 0 })}</span>
                 <span class="data-size local-size">0B</span>
               </div>
             </div>
@@ -1121,8 +1137,8 @@ class StorageManager {
           <div class="stat-card session-stats">
             <div class="stat-header">
               <span class="stat-title">⏳ sessionStorage</span>
-              <button class="export-btn" type="button" data-action="export-data" data-storage="session" title="データをエクスポート">
-                💾 書き出し
+              <button class="export-btn" type="button" data-action="export-data" data-storage="session" title="${this.t("export.buttonTitle")}">
+                ${this.t("export.button")}
               </button>
             </div>
             <div class="stat-content">
@@ -1131,7 +1147,7 @@ class StorageManager {
                 <span class="capacity-text session-text">0 / ~5MB</span>
               </div>
               <div class="stat-details">
-                <span class="item-count session-count">0アイテム</span>
+                <span class="item-count session-count">${this.t("stats.itemCount", { count: 0 })}</span>
                 <span class="data-size session-size">0B</span>
               </div>
             </div>
@@ -1208,7 +1224,7 @@ class StorageManager {
     }
     
     if (countElement) {
-      countElement.textContent = `${stats.itemCount}アイテム`;
+      countElement.textContent = this.t("stats.itemCount", { count: stats.itemCount });
     }
     
     if (sizeElement) {
@@ -1256,34 +1272,34 @@ class StorageManager {
       <div class="export-modal-overlay" data-action="close-export"></div>
       <div class="export-modal-content">
         <div class="export-modal-header">
-          <h3>💾 データエクスポート</h3>
-          <button class="export-modal-close" type="button" data-action="close-export" title="閉じる">✕</button>
+          <h3>${this.t("export.title")}</h3>
+          <button class="export-modal-close" type="button" data-action="close-export" title="${this.t("common.close")}">✕</button>
         </div>
         <div class="export-modal-body">
           <div class="export-info">
             <span class="export-storage-type">${storageType}Storage</span>
-            <span class="export-item-count">${Object.keys(data).length}アイテム</span>
+            <span class="export-item-count">${this.t("stats.itemCount", { count: Object.keys(data).length })}</span>
             <span class="export-data-size">${this.formatBytes(new Blob([JSON.stringify(data)]).size)}</span>
           </div>
           <div class="export-format">
             <label>
               <input type="radio" name="exportFormat" value="json" checked>
-              JSON形式 (.json)
+              ${this.t("export.json")}
             </label>
             <label>
               <input type="radio" name="exportFormat" value="csv">
-              CSV形式 (.csv)
+              ${this.t("export.csv")}
             </label>
           </div>
           <div class="export-preview">
-            <label for="exportPreview">プレビュー:</label>
+            <label for="exportPreview">${this.t("export.preview")}</label>
             <textarea id="exportPreview" readonly rows="8">${JSON.stringify(data, null, 2)}</textarea>
           </div>
         </div>
         <div class="export-modal-footer">
-          <button class="export-cancel-btn" type="button" data-action="close-export">キャンセル</button>
+          <button class="export-cancel-btn" type="button" data-action="close-export">${this.t("common.cancel")}</button>
           <button class="export-download-btn" type="button" data-action="download-export" data-storage="${storageType}">
-            💾 ダウンロード
+            ${this.t("export.download")}
           </button>
         </div>
       </div>
@@ -1380,7 +1396,7 @@ class StorageManager {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
-    this.displayNotification(`✅ ${filename} をダウンロードしました`);
+    this.displayNotification(this.t("notify.downloaded", { filename }));
     this.closeExportModal();
   }
 
@@ -1436,7 +1452,7 @@ class StorageManager {
     if (searchInput && (searchInput.value || visibleItems.length !== totalItems)) {
       const statsDiv = document.createElement("div");
       statsDiv.className = "search-stats";
-      statsDiv.textContent = `${visibleItems.length} / ${totalItems} 件のアイテムを表示中`;
+      statsDiv.textContent = this.t("search.showing", { visible: visibleItems.length, total: totalItems });
       
       const searchContainer = document.querySelector(".search-container");
       searchContainer.after(statsDiv);
@@ -1480,8 +1496,8 @@ class StorageManager {
           <div>
             <div class="storage-header">
               <h3>📦 localStorage</h3>
-              <button class="clear-storage-btn" type="button" data-action="clear-storage" data-storage="local" title="localStorageを全削除">
-                🗑️ 全削除
+              <button class="clear-storage-btn" type="button" data-action="clear-storage" data-storage="local" title="${this.t("storage.clearLocalTitle")}">
+                ${this.t("storage.clearAll")}
               </button>
             </div>
             <ul id="localList"></ul>
@@ -1489,8 +1505,8 @@ class StorageManager {
           <div>
             <div class="storage-header">
               <h3>⏳ sessionStorage</h3>
-              <button class="clear-storage-btn" type="button" data-action="clear-storage" data-storage="session" title="sessionStorageを全削除">
-                🗑️ 全削除
+              <button class="clear-storage-btn" type="button" data-action="clear-storage" data-storage="session" title="${this.t("storage.clearSessionTitle")}">
+                ${this.t("storage.clearAll")}
               </button>
             </div>
             <ul id="sessionList"></ul>
@@ -1523,7 +1539,7 @@ class StorageManager {
     examplesContainer.className = "collapsible-section collapsed";
     examplesContainer.innerHTML = `
       <div class="collapsible-header" data-action="toggle-collapsible">
-        <span class="collapsible-title">🧪 インタラクティブテスト</span>
+        <span class="collapsible-title">${this.t("test.heading")}</span>
         <span class="collapsible-toggle">▼</span>
       </div>
       <div class="collapsible-content">
@@ -1566,26 +1582,19 @@ class StorageManager {
 
   demonstratePersistence() {
     const timestamp = new Date().toISOString();
-    localStorage.setItem("persistence_test", `保存時刻: ${timestamp}`);
-    sessionStorage.setItem("persistence_test", `保存時刻: ${timestamp}`);
+    localStorage.setItem("persistence_test", this.t("test.savedAt", { time: timestamp }));
+    sessionStorage.setItem("persistence_test", this.t("test.savedAt", { time: timestamp }));
     
     this.refreshDisplay();
     
     alert(
-      "両方のストレージにデータを保存しました。\n" +
-      "ブラウザを閉じて再度開くと、localStorageのみデータが残っています。\n" +
-      "上の表示で確認してください。"
+      this.t("test.persistence.message")
     );
   }
 
   demonstrateOriginPolicy() {
     alert(
-      "同一オリジンポリシーにより、\n" +
-      "- https://example.com\n" +
-      "- https://sub.example.com\n" +
-      "- http://example.com\n" +
-      "これらは全て異なるストレージ領域を持ちます。\n\n" +
-      "現在のオリジン: " + window.location.origin
+      this.t("test.origin.message", { origin: window.location.origin })
     );
   }
 
@@ -1657,14 +1666,14 @@ class StorageManager {
       } else {
         this.showQuotaResultDialog({
           success: false,
-          error: '最小テストサイズ(1MB)でも保存に失敗しました。'
+          error: this.t("quota.tooSmall")
         });
       }
       
     } catch (e) {
       this.showQuotaResultDialog({
         success: false,
-        error: `容量テスト中にエラーが発生しました: ${e.message}`
+        error: this.t("quota.error", { message: e.message })
       });
     }
   }
@@ -1684,18 +1693,18 @@ class StorageManager {
         <div class="quota-modal-overlay" data-action="close-quota"></div>
         <div class="quota-modal-content">
           <div class="quota-modal-header">
-            <h3>📊 容量制限テスト結果</h3>
-            <button class="quota-modal-close" type="button" data-action="close-quota" title="閉じる">✕</button>
+            <h3>${this.t("quota.resultTitle")}</h3>
+            <button class="quota-modal-close" type="button" data-action="close-quota" title="${this.t("common.close")}" aria-label="${this.t("common.close")}">✕</button>
           </div>
           <div class="quota-modal-body">
             <div class="quota-summary">
               <div class="quota-main-stat">
                 <div class="quota-capacity">
-                  <span class="capacity-label">利用可能容量</span>
-                  <span class="capacity-value">約 ${result.maxMB}MB</span>
+                  <span class="capacity-label">${this.t("quota.capacityLabel")}</span>
+                  <span class="capacity-value">${this.t("quota.about", { mb: result.maxMB })}</span>
                 </div>
                 <div class="quota-usage">
-                  <span class="usage-label">現在の使用量</span>
+                  <span class="usage-label">${this.t("quota.usageLabel")}</span>
                   <span class="usage-value">${result.currentMB}MB (${((parseFloat(result.currentMB) / parseFloat(result.maxMB)) * 100).toFixed(1)}%)</span>
                 </div>
               </div>
@@ -1713,19 +1722,19 @@ class StorageManager {
               <div class="quota-info">
                 <p class="quota-status">
                   ${result.hasExistingData 
-                    ? '📁 既存データが保存されています' 
-                    : '💡 新規テスト環境です'
+                    ? this.t("quota.hasData") 
+                    : this.t("quota.noData")
                   }
                 </p>
                 <p class="quota-note">
-                  残り約 <strong>${result.availableMB}MB</strong> 利用可能
+                  ${this.t("quota.remaining", { mb: result.availableMB })}
                 </p>
               </div>
             </div>
           </div>
           <div class="quota-modal-footer">
             <button class="quota-ok-btn" type="button" data-action="close-quota">
-              📋 確認
+              ${this.t("common.ok")}
             </button>
           </div>
         </div>
@@ -1735,26 +1744,26 @@ class StorageManager {
         <div class="quota-modal-overlay" data-action="close-quota"></div>
         <div class="quota-modal-content error">
           <div class="quota-modal-header">
-            <h3>❌ テストエラー</h3>
-            <button class="quota-modal-close" type="button" data-action="close-quota" title="閉じる">✕</button>
+            <h3>${this.t("quota.errorTitle")}</h3>
+            <button class="quota-modal-close" type="button" data-action="close-quota" title="${this.t("common.close")}" aria-label="${this.t("common.close")}">✕</button>
           </div>
           <div class="quota-modal-body">
             <div class="error-content">
               <div class="error-icon">⚠️</div>
               <p class="error-message">${result.error}</p>
               <div class="error-suggestions">
-                <p><strong>推奨対処法:</strong></p>
+                <p><strong>${this.t("quota.adviceLabel")}</strong></p>
                 <ul>
-                  <li>ブラウザを再起動してください</li>
-                  <li>プライベートモードでお試しください</li>
-                  <li>他のタブを閉じてください</li>
+                  <li>${this.t("quota.advice1")}</li>
+                  <li>${this.t("quota.advice2")}</li>
+                  <li>${this.t("quota.advice3")}</li>
                 </ul>
               </div>
             </div>
           </div>
           <div class="quota-modal-footer">
             <button class="quota-ok-btn" type="button" data-action="close-quota">
-              閉じる
+              ${this.t("common.close")}
             </button>
           </div>
         </div>
