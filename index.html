@@ -5,95 +5,104 @@
   <title>LocalStorage Playground</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- セキュリティヘッダー -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self'; img-src 'self' data:; connect-src 'none'; base-uri 'self'; form-action 'self'; object-src 'none';">
   <meta name="referrer" content="no-referrer">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
+    <div class="language-switch">
+      <button class="language-button" type="button" id="languageToggle" data-i18n="lang.toggle" data-i18n-attr="title: lang.toggleTitle, aria-label: lang.toggleTitle">English</button>
+    </div>
     <h1>LocalStorage Playground</h1>
-    <p class="subtitle">localStorage / sessionStorage の特性と危険性を体験しよう</p>
+    <p class="subtitle" data-i18n="app.subtitle">localStorage / sessionStorage の特性と危険性を体験しよう</p>
   </header>
 
-  <nav class="tabs">
-    <button class="tab-button active" data-tab="storage">🗃 ストレージ操作</button>
-    <button class="tab-button" data-tab="xss">💥 XSSデモ</button>
-    <button class="tab-button" data-tab="defense">🛡️ 防御デモ</button>
-    <button class="tab-button" data-tab="learn">📖 学習</button>
+  <nav class="tabs" role="tablist" data-i18n-attr="aria-label: tabs.label" aria-label="機能">
+    <button class="tab-button active" type="button" id="tab-storage" role="tab" aria-selected="true" aria-controls="storage" data-tab="storage" data-i18n="tab.storage">🗃 ストレージ操作</button>
+    <button class="tab-button" type="button" id="tab-xss" role="tab" aria-selected="false" aria-controls="xss" data-tab="xss" data-i18n="tab.xss">💥 XSSデモ</button>
+    <button class="tab-button" type="button" id="tab-defense" role="tab" aria-selected="false" aria-controls="defense" data-tab="defense" data-i18n="tab.defense">🛡️ 防御デモ</button>
+    <button class="tab-button" type="button" id="tab-learn" role="tab" aria-selected="false" aria-controls="learn" data-tab="learn" data-i18n="tab.learn">📖 学習</button>
   </nav>
 
   <main>
-    <section id="storage" class="tab-content active">
-      <h2>🗃 ストレージ（localStorageとsessionStorage）操作</h2>
+    <section id="storage" class="tab-content active" role="tabpanel" tabindex="0" aria-labelledby="tab-storage">
+      <h2 data-i18n="storage.heading">🗃 ストレージ（localStorageとsessionStorage）操作</h2>
 
       <div class="input-area">
-        <input type="text" id="keyInput" placeholder="キー">
-        <input type="text" id="valueInput" placeholder="値">
+        <label class="visually-hidden" for="keyInput" data-i18n="storage.keyLabel">キー</label>
+        <input type="text" id="keyInput" data-i18n-attr="placeholder: storage.keyLabel" placeholder="キー">
+        <label class="visually-hidden" for="valueInput" data-i18n="storage.valueLabel">値</label>
+        <input type="text" id="valueInput" data-i18n-attr="placeholder: storage.valueLabel" placeholder="値">
         <select id="storageType">
           <option value="local">localStorage</option>
           <option value="session">sessionStorage</option>
         </select>
-        <button onclick="saveData()">保存</button>
+        <button type="button" data-action="save-data" data-i18n="storage.save">保存</button>
       </div>
 
       <div class="actions">
-        <!-- Clear buttons moved to storage headers -->
+        <!-- 全削除のボタンは各ストレージの見出しへ置いている -->
       </div>
 
       <div class="storage-display">
         <div>
           <div class="storage-header">
-            <h3>📦 localStorage</h3>
-            <button class="clear-storage-btn" onclick="clearStorage('local')" title="localStorageを全削除">
-              🗑️ 全削除
-            </button>
+            <h3 data-i18n="storage.localTitle">📦 localStorage</h3>
+            <button class="clear-storage-btn" type="button" data-action="clear-storage" data-storage="local" data-i18n="storage.clearAll" data-i18n-attr="title: storage.clearLocalTitle" title="localStorageを全削除">🗑️ 全削除</button>
           </div>
           <ul id="localList"></ul>
         </div>
         <div>
           <div class="storage-header">
-            <h3>⏳ sessionStorage</h3>
-            <button class="clear-storage-btn" onclick="clearStorage('session')" title="sessionStorageを全削除">
-              🗑️ 全削除
-            </button>
+            <h3 data-i18n="storage.sessionTitle">⏳ sessionStorage</h3>
+            <button class="clear-storage-btn" type="button" data-action="clear-storage" data-storage="session" data-i18n="storage.clearAll" data-i18n-attr="title: storage.clearSessionTitle" title="sessionStorageを全削除">🗑️ 全削除</button>
           </div>
           <ul id="sessionList"></ul>
         </div>
       </div>
     </section>
 
-    <section id="xss" class="tab-content">
-      <h2>💥 XSSによるlocalStorage盗難のデモ</h2>
-      <p>下のフィールドに悪意あるスクリプトを入力して「実行」すると、localStorageからデータを盗む動作を再現できます（※安全な環境内のみで実行してください）。</p>
+    <section id="xss" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="tab-xss">
+      <h2 data-i18n="xss.heading">💥 XSSによるlocalStorage盗難のデモ</h2>
+      <p data-i18n="xss.lead">下のフィールドに悪意あるスクリプトを入力して「実行」すると、localStorageからデータを盗む動作を再現できます（安全な環境の中だけで実行してください）。</p>
       <div class="xss-input-section">
-        <textarea id="xssInput" placeholder='例: alert(localStorage.getItem("token"))'></textarea>
-        <button class="xss-execute-btn" onclick="runXSS()">🚀 実行</button>
+        <label class="visually-hidden" for="xssInput" data-i18n="xss.inputLabel">教育用スクリプト</label>
+        <textarea id="xssInput" data-i18n-attr="placeholder: xss.placeholder" placeholder='例: alert(localStorage.getItem("token"))'></textarea>
+        <button class="xss-execute-btn" type="button" data-action="run-xss" data-i18n="xss.run">🚀 実行</button>
       </div>
       <div id="xssResult" class="xss-output"></div>
     </section>
 
-    <section id="defense" class="tab-content">
-      <h2>🛡️ セキュリティ防御デモンストレーション</h2>
-      <p>XSS攻撃に対する主要な防御手法の効果を実際に確認できます。各防御策がどのように攻撃を無効化するかを体験してください。</p>
+    <section id="defense" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="tab-defense">
+      <h2 data-i18n="defense.heading">🛡️ セキュリティ防御デモンストレーション</h2>
+      <p data-i18n="defense.lead">XSS攻撃に対する主要な防御手法の効果を確認できます。各防御策がどのように攻撃を無効化するかを体験してください。</p>
     </section>
 
-    <section id="learn" class="tab-content">
-      <h2>📖 Web Storageの仕組みとセキュリティ</h2>
+    <section id="learn" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="tab-learn">
+      <h2 data-i18n="learn.heading">📖 Web Storageの仕組みとセキュリティ</h2>
       <ul>
-        <li><strong>localStorage</strong> は永続的にブラウザ内に保存され、JSから自由に読み書きできます。</li>
-        <li><strong>sessionStorage</strong> はタブを閉じると消えますが、JSからアクセス可能です。</li>
-        <li><strong>XSS</strong> 攻撃が成立すると、保存されたトークンなどがすぐに盗まれます。</li>
-        <li>機密情報は <code>HttpOnly Cookie</code> に保存すべきで、localStorageは推奨されません。</li>
+        <li data-i18n-html="learn.point1html"><strong>localStorage</strong> は永続的にブラウザー内へ保存され、JavaScriptから自由に読み書きできます。</li>
+        <li data-i18n-html="learn.point2html"><strong>sessionStorage</strong> はタブを閉じると消えますが、JavaScriptからアクセスできます。</li>
+        <li data-i18n-html="learn.point3html"><strong>XSS</strong> 攻撃が成立すると、保存されたトークンなどがすぐに盗まれます。</li>
+        <li data-i18n-html="learn.point4html">機密情報は <code>HttpOnly Cookie</code> へ保存すべきで、localStorageは適しません。</li>
       </ul>
     </section>
   </main>
 
   <footer>
     <div class="footer">
-      🔗 GitHubリポジトリはこちら（ <a href="https://github.com/ipusiron/localstorage-playground" target="_blank">ipusiron/localstorage-playground</a> ）
+      <span data-i18n="footer.repo">🔗 GitHubリポジトリはこちら</span>
+      （ <a href="https://github.com/ipusiron/localstorage-playground" target="_blank" rel="noopener noreferrer">ipusiron/localstorage-playground</a> ）
     </div>
   </footer>
 
-  <script type="module" src="main.js"></script>
+  <script src="modules/i18n.js"></script>
+  <script src="modules/tabs.js"></script>
+  <script src="modules/storage.js"></script>
+  <script src="modules/xss.js"></script>
+  <script src="modules/defense.js"></script>
+  <script src="modules/learn.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>

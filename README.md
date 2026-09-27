@@ -36,6 +36,8 @@ hub: true
 
 # LocalStorage Playground - Webストレージの危険性の学習・体験ツール
 
+[English](README.en.md) · 日本語
+
 ![GitHub Repo stars](https://img.shields.io/github/stars/ipusiron/localstorage-playground?style=social)
 ![GitHub forks](https://img.shields.io/github/forks/ipusiron/localstorage-playground?style=social)
 ![GitHub last commit](https://img.shields.io/github/last-commit/ipusiron/localstorage-playground)
@@ -44,114 +46,154 @@ hub: true
 
 **Day038 - 生成AIで作るセキュリティツール100**
 
-**LocalStorage Playground** は、WebStorageのセキュリティリスクを実践的に学習できる教育ツールです。
+**LocalStorage Playground** は、`localStorage` と `sessionStorage` に保存したデータが、どこまで守られていて、どこから守られていないのかを、実際に触って確かめるためのツールです。
 
-本ツールは、以下の3つの特徴を備えています。
+ブラウザーだけで動きます。サーバーもインストールも要りません。保存したデータは自分のブラウザーの中だけにあり、外へ送られることはありません。
 
-- XSS攻撃の実行と防御を安全に体験
-- ブラウザストレージの脆弱性を視覚的に理解  
-- 企業研修・個人学習・授業で即座に利用可能
-
----
-
-## 🚀 デモページ
+## 🔗 デモページ
 
 👉 **[https://ipusiron.github.io/localstorage-playground/](https://ipusiron.github.io/localstorage-playground/)**
 
----
-
-## 👥 対象者
-
-- **Web開発者**
-- **セキュリティ担当者**
-- **学習者**  
-
-前提知識：JavaScript基礎（推奨）
-
 ## 📸 スクリーンショット
 
-> ![ストレージに認証情報をセット](assets/screenshot.png)  
->
-> *ストレージに認証情報をセット*
+![ストレージの中身を一覧する画面](assets/screenshot.png)
 
----
+*保存したデータを、localStorageとsessionStorageに分けて一覧する*
 
-## 🎯 主な機能
+![英語表示の防御デモ](assets/en/screenshot.png)
 
-### 📊 ストレージ管理機能
-- `localStorage` / `sessionStorage` に保存されたデータの一覧表示
-- 任意のキー・値の追加・編集・削除
-- ストレージのクリア機能（片方または両方）
-- 容量統計の表示とブラウザークォータチェック（モーダル表示）
-- データのエクスポート機能（JSON形式、日本時間タイムスタンプ付きファイル名、💾アイコン）
-- プリセットデータの自動生成
-- リアルタイムデータ更新と検索・フィルタリング
+*英語表示。出力のしかたで結果がどう変わるかを並べて見せる*
 
-### 🎯 XSS攻撃デモ
-- 基本的な攻撃（トークン窃取、セッションデータ窃取）
-- 高度な攻撃（全データ列挙、JSON一括取得）
-- 持続的攻撃（マルウェア埋め込み、外部送信攻撃）
-- 攻撃シナリオ選択UI
-- セキュリティ影響分析とステップ表示
+## 🎯 何ができるか
 
-### 🛡️ 防御デモンストレーション
-- CSP（Content Security Policy）の効果確認
-- HttpOnly Cookieの防御力比較
-- 入力サニタイゼーション前後の比較
+### ストレージを触る
 
-### 📚 学習コンテンツ
-- `localStorage` と `sessionStorage` の違いを視覚的に比較
-- セキュリティ警告の表示（アクセス可能性・XSS盗難リスク）
-- ベストプラクティスとセキュアな実装例
+- `localStorage` と `sessionStorage` の中身を並べて一覧する
+- キーと値を追加する、書き換える、消す
+- 片方だけ、または両方をまとめて空にする
+- キーと値で絞り込む。型（文字列・JSON・数値・真偽値・URL・メール）でも絞り込める
+- いま何バイト使っているかを見る。保存できる上限を実際に測る
+- 中身をJSONまたはCSVで書き出す（ファイルはブラウザーの中で作る）
+- 学習用のサンプルデータをまとめて読み込む
 
----
+### XSSで何が取れるかを見る
+
+- 攻撃のシナリオを3つの段階（基本・広く取る・居座る）から選ぶ
+- 選んだスクリプトを、通信を遮断した状態で実行する
+- 実行の前後でストレージがどう変わったかを並べる
+- 外へ送ろうとした回数を数える（実際には送らない）
+
+### 防御が何をしてくれるかを見る
+
+- CSP（Content Security Policy）
+- HttpOnly Cookie
+- 入力を文字として出力する書き方
+
+それぞれについて、「防御なし」と「防御あり」を並べ、**その防御だけでは足りない点**も添えています。
+
+### 仕組みを読む
+
+- `localStorage`・`sessionStorage`・HttpOnly Cookieの比較表
+- 機密情報を置かないほうがよい理由
+
+## 🌐 日本語と英語
+
+画面右上のボタンで切り替えます。言語は次の順で決まります。
+
+1. URLの `?lang=ja` または `?lang=en`
+2. 前回選んだ設定（`localstorage-playground:lang` というキーでlocalStorageへ保存される）
+3. ブラウザーの言語設定
+
+設定は隠さず、ほかのデータと同じように一覧へ出します。「このツール自身の設定もlocalStorageに置かれている」ことが、そのまま例になるためです。
+
+切り替えるとページを読み込み直しますが、**開いていたタブと入力中の文字はそのまま残ります**。持ち越しには `window.name` を使っており、ストレージの中身は汚しません。
+
+## 🔐 このツール自身の安全性
+
+学習用のツールであっても、そのツール自身に穴があっては話になりません。次のようにしています。
+
+- 利用者の入力（キー・値・検索語）を、**HTMLの文字列へ組み立てない**。表示はすべて `textContent` と `createElement` で行う
+- インラインの `onclick` と `style` 属性を使わない
+- CSPで `script-src 'unsafe-inline'` と `style-src 'unsafe-inline'` を許可しない
+- `connect-src 'none'` と `object-src 'none'` を指定し、外部への通信と埋め込みを止める
+- 外部のCDN・フォント・APIを一切読み込まない
+
+`script-src` の `'unsafe-eval'` だけは残しています。XSSデモが入力したスクリプトを `eval` で実行するためです。実行中は `fetch`・`XMLHttpRequest`・`WebSocket`・`Image`・`navigator.sendBeacon` を差し替えて遮断し、終わったら例外が出た場合も含めて必ず元へ戻します。詳しくは [SECURITY.md](SECURITY.md) を参照してください。
 
 ## 📛 セキュリティリスク情報
 
-本ツールで体験できるXSS攻撃シナリオ、実際の被害例、推奨される防御策については、以下のリンク先で詳しく解説しています。
+このツールで再現できる攻撃、実際の被害の例、推奨される対策は、別ファイルにまとめています。
 
 👉 **[セキュリティリスクと対策の詳細](SECURITY.md)**
 
----
+## 🧪 テスト
 
-## 📁 ディレクトリー構成
+依存パッケージはありません。Node.js 22以降で動きます。
+
+```bash
+npm test
+```
+
+32件のテストがあり、次を確かめます。
+
+- 利用者の入力をHTML文字列やイベント属性へ混ぜていないこと
+- インラインハンドラー・`style`属性・不要な `'unsafe-inline'`・外部リソース・通信を持ち込んでいないこと
+- XSSデモが差し替えた通信APIを必ず元へ戻すこと
+- タブ・ダイアログ・ラベル・`button`の`type`・CSP・`lang`の組み立て
+- 日本語と英語の辞書のキーが一致し、空の値と差し込みの食い違いがないこと
+- 画面の文言をモジュールへ直接書いていないこと
+
+`.github/workflows/test.yml` が、pushとpull requestのたびに同じテストを実行します。
+
+## 📂 ディレクトリー構成
 
 ```
 localstorage-playground/
-├── index.html                # メインHTMLファイル
-├── style.css                 # CSSスタイル（レスポンシブ・ダークモード対応）
-├── main.js                   # エントリーポイント（ES6モジュール）
-├── modules/                  # 機能別モジュール
-│   ├── tabs.js               # タブ切り替え管理
-│   ├── storage.js            # ストレージ操作（メイン機能）
-│   │                         # - 容量統計・エクスポート・編集・削除
-│   │                         # - プリセットデータ・検索・フィルタリング
-│   │                         # - リアルタイム更新・インタラクティブテスト
-│   ├── xss.js                # XSS攻撃デモ機能
-│   │                         # - 攻撃シナリオ分類（基本・高度・持続的）
-│   │                         # - セキュリティ影響分析・実行ステップ表示
-│   ├── defense.js            # 防御デモンストレーション
-│   │                         # - CSP・HttpOnly・サニタイゼーション実演
-│   └── learn.js              # 学習コンテンツ（比較表・ベストプラクティス）
-├── CLAUDE.md                 # 開発ドキュメント（Claude向け）
-├── README.md                 # プロジェクト説明書
-├── SECURITY.md               # セキュリティリスクと対策（詳細版）
+├── index.html                # 画面の骨組み。文言は data-i18n で辞書と結ぶ
+├── style.css                 # スタイル（狭い画面とダークモードに対応）
+├── main.js                   # 起動処理。各モジュールの初期化と言語切り替え
+├── modules/
+│   ├── i18n.js               # 日英の辞書と、言語の判定・切り替え
+│   ├── tabs.js               # タブの切り替えとキーボード操作
+│   ├── storage.js            # ストレージの操作（追加・編集・削除・検索）
+│   │                         # 容量統計、書き出し、サンプルデータ、動作確認
+│   ├── xss.js                # XSSデモ（シナリオ選択・遮断・影響の分析）
+│   ├── defense.js            # 防御デモ（CSP・HttpOnly・出力のしかた）
+│   └── learn.js              # 学習用の解説と比較表
+├── test/
+│   ├── foundation.test.js    # 読み込みの形と、安全な表示の土台
+│   ├── storage-safety.test.js # 入力の扱いとストレージ監視の作法
+│   ├── markup-csp.test.js    # CSP・マークアップ・アクセシビリティ
+│   ├── i18n.test.js          # 日英の辞書と文言の集約
+│   └── docs.test.js          # READMEとSECURITY.mdの整合
+├── .github/workflows/test.yml # pushとpull requestでテストを実行
+├── package.json              # node --test を呼ぶだけ。依存なし
+├── CLAUDE.md                 # このリポジトリーで作業するときの前提
+├── README.md                 # この文書
+├── README.en.md              # 英語版
+├── SECURITY.md               # セキュリティリスクと対策
 ├── LICENSE                   # MITライセンス
-└── assets/                   # 静的リソース
-    └── screenshot.png        # デモスクリーンショット
+└── assets/
+    ├── screenshot.png        # 日本語画面のスクリーンショット
+    └── en/
+        └── screenshot.png    # 英語画面のスクリーンショット
 ```
 
----
+## ⚙️ 動作環境
+
+- モダンブラウザー（Chrome・Edge・Firefox・Safariの最近の版）
+- ビルドは不要。`index.html` をそのまま開いても、ローカルのHTTPサーバー経由でも動く
+- テストの実行にはNode.js 22以降が必要（ツール自体の利用には不要）
+
+`file://` で開いた場合も、すべての機能が動くことを確認しています。ただし `file://` ではオリジンの扱いがブラウザーによって異なるため、同一オリジンポリシーの確認はHTTP経由のほうが実態に近くなります。
 
 ## 📄 ライセンス
 
 MIT License - 詳細は [LICENSE](LICENSE) をご覧ください。
 
----
-
 ## 🛠 このツールについて
 
-本ツールは、「生成AIで作るセキュリティツール100」プロジェクトの一環として開発されました。 このプロジェクトでは、AIの支援を活用しながら、セキュリティに関連するさまざまなツールを100日間にわたり制作・公開していく取り組みを行っています。
+本ツールは、「生成AIで作るセキュリティツール100」プロジェクトの一環として開発されました。このプロジェクトでは、AIの支援を活用しながら、セキュリティに関連するさまざまなツールを100日間にわたり制作・公開していく取り組みを行っています。
 
 プロジェクトの詳細や他のツールについては、以下のページをご覧ください。
 
