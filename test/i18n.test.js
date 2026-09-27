@@ -14,6 +14,25 @@ const MESSAGES = new Function(source.split("class I18n")[0] + "return MESSAGES;"
 
 const uiModules = ["main.js", "modules/tabs.js", "modules/storage.js", "modules/xss.js", "modules/defense.js", "modules/learn.js"];
 
+// 引用符の外にある // から後ろだけを落とす
+function stripTrailingComment(line) {
+  let quote = null;
+  for (let i = 0; i < line.length; i += 1) {
+    const ch = line[i];
+    if (quote) {
+      if (ch === "\\") i += 1;
+      else if (ch === quote) quote = null;
+      continue;
+    }
+    if (ch === '"' || ch === "'" || ch === "`") {
+      quote = ch;
+      continue;
+    }
+    if (ch === "/" && line[i + 1] === "/") return line.slice(0, i);
+  }
+  return line;
+}
+
 test("日本語と英語のキーが一致し、空の値がない", () => {
   const ja = Object.keys(MESSAGES.ja).sort();
   const en = Object.keys(MESSAGES.en).sort();
@@ -51,8 +70,9 @@ test("画面の文言をモジュールへ直接書かない", () => {
     lines.forEach((line, index) => {
       const trimmed = line.trim();
       if (trimmed.startsWith("//") || trimmed.startsWith("*")) return;
-      // 行末のコメントは対象外にする（URLの // は消さない）
-      const code = line.replace(/(^|[^:])\/\/.*$/, "$1");
+      // 行末のコメントだけを落とす。
+      // 文字列の中の // をコメントと見なすと、コード見本の日本語を見逃す。
+      const code = stripTrailingComment(line);
       assert.doesNotMatch(code, JAPANESE, `${name}:${index + 1} に画面文言が直書きされている`);
     });
   }

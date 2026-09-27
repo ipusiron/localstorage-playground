@@ -117,7 +117,7 @@ class DefenseDemo {
       this.el("div", { class: "output-sample", text: maliciousInput })
     ]);
 
-    const guide = "// このツールが実際に使っている書き方\nconst node = document.createElement('div');\nnode.textContent = userInput;";
+    const guide = this.t("defense.sanitization.guideCode");
 
     const result = this.buildComparison(
       "sanitization",

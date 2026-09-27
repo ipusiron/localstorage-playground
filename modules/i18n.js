@@ -272,7 +272,9 @@ const MESSAGES = {
     "quota.tooSmall": "1MBでも保存できませんでした。",
     "quota.error": "測定中にエラーが起きました: {message}",
 
-    "alert.keyNotFound": "キー {key} が見つかりません。"
+    "alert.keyNotFound": "キー {key} が見つかりません。",
+
+    "defense.sanitization.guideCode": "// このツールが実際に使っている書き方\nconst node = document.createElement('div');\nnode.textContent = userInput;"
   },
 
   en: {
@@ -546,7 +548,9 @@ const MESSAGES = {
     "quota.tooSmall": "Even 1MB could not be stored.",
     "quota.error": "Something went wrong during the measurement: {message}",
 
-    "alert.keyNotFound": "No such key: {key}"
+    "alert.keyNotFound": "No such key: {key}",
+
+    "defense.sanitization.guideCode": "// What this tool actually does\nconst node = document.createElement('div');\nnode.textContent = userInput;"
   }
 };
 

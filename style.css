@@ -340,6 +340,13 @@ main {
 }
 
 .collapsible-header {
+  /* button要素で組み立てているので、既定の見た目を打ち消す */
+  width: 100%;
+  border: none;
+  border-radius: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
   background: #f8f9fa;
   padding: 1rem;
   cursor: pointer;
