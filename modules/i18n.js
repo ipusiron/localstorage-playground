@@ -274,7 +274,13 @@ const MESSAGES = {
 
     "alert.keyNotFound": "キー {key} が見つかりません。",
 
-    "defense.sanitization.guideCode": "// このツールが実際に使っている書き方\nconst node = document.createElement('div');\nnode.textContent = userInput;"
+    "defense.sanitization.guideCode": "// このツールが実際に使っている書き方\nconst node = document.createElement('div');\nnode.textContent = userInput;",
+
+    "storageError.noticeTitle": "このブラウザーではWeb Storageを使えません",
+    "storageError.noticeBody": "プライベートウィンドウや、サイトデータをブロックする設定では、localStorageへ触れるだけでエラーになります。ストレージの一覧と操作は使えませんが、XSSデモ・防御デモ・学習の各タブは動きます。",
+    "storageError.readOnly": "読み取りはできますが、書き込みが拒否されています。保存や削除は反映されません。",
+    "storageError.blocked": "ブラウザーがストレージへの操作を拒否しました。",
+    "storageError.quota": "ストレージの空きが足りません。不要なデータを削除してください。"
   },
 
   en: {
@@ -550,7 +556,13 @@ const MESSAGES = {
 
     "alert.keyNotFound": "No such key: {key}",
 
-    "defense.sanitization.guideCode": "// What this tool actually does\nconst node = document.createElement('div');\nnode.textContent = userInput;"
+    "defense.sanitization.guideCode": "// What this tool actually does\nconst node = document.createElement('div');\nnode.textContent = userInput;",
+
+    "storageError.noticeTitle": "Web Storage is not available in this browser",
+    "storageError.noticeBody": "In a private window, or when site data is blocked, even touching localStorage raises an error. The storage list and controls are unavailable, but the XSS demo, defense demo and learn tabs still work.",
+    "storageError.readOnly": "Reading works, but writing is refused. Saving and deleting will not take effect.",
+    "storageError.blocked": "The browser refused the storage operation.",
+    "storageError.quota": "There is not enough room in the storage. Delete something you no longer need."
   }
 };
 

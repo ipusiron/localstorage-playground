@@ -51,7 +51,10 @@ No CDN, font, API or analytics. `connect-src 'none'` stays. `xss.js` is the only
 **7. Display text lives in `modules/i18n.js`.**
 Modules call `this.t("key")`; they must not contain Japanese display strings. `index.html` binds text through `data-i18n`, `data-i18n-html` and `data-i18n-attr`. The `ja` and `en` tables must have identical keys and identical `{placeholder}` names.
 
-**8. Do not let the page scroll horizontally.**
+**8. The page must survive a browser that refuses Storage.**
+In a private window, or with site data blocked, even reading `localStorage.length` throws. `StorageManager.probeStorage()` checks readability and writability first; when the storages are unreadable the manager shows an explanation and stops, without throwing. `main.js` initialises each module inside its own `try`/`catch`, so one failure does not take the other tabs down. Every path that touches Storage goes through `safely()` or a local `try`/`catch`.
+
+**9. Do not let the page scroll horizontally.**
 Checked at 1280, 768, 390 and 320 px. Global `box-sizing: border-box`, `min-width: 0` on flex children, and `minmax(min(100%, Npx), 1fr)` for grid tracks.
 
 ## Language handling
