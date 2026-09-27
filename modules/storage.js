@@ -651,12 +651,12 @@ class StorageManager {
   }
 
   updateList(element, storage) {
-    element.innerHTML = "";
+    element.replaceChildren();
 
     if (storage.length === 0) {
       const emptyMessage = document.createElement("li");
       emptyMessage.textContent = "（データなし）";
-      emptyMessage.style.color = "#999";
+      emptyMessage.className = "storage-empty-message";
       element.appendChild(emptyMessage);
       return;
     }
@@ -676,12 +676,17 @@ class StorageManager {
       li.dataset.storage = storageType;
       
       // シンプルな1行表示：key = value（ダブルクリックで編集）
-      const displayValue = this.formatValueSimple(value);
-      li.innerHTML = `
-        <span class="storage-key">${this.escapeHtml(key)}</span>
-        <span class="storage-separator"> = </span>
-        <span class="storage-value" title="${this.escapeHtml(value)}">${displayValue}</span>
-      `;
+      const keyElement = document.createElement("span");
+      keyElement.className = "storage-key";
+      keyElement.textContent = key;
+      const separator = document.createElement("span");
+      separator.className = "storage-separator";
+      separator.textContent = " = ";
+      const valueElement = document.createElement("span");
+      valueElement.className = "storage-value";
+      valueElement.title = value;
+      valueElement.textContent = this.formatValueSimple(value);
+      li.append(keyElement, separator, valueElement);
       
       // ダブルクリックで編集機能を追加
       li.addEventListener('dblclick', (e) => {
@@ -689,7 +694,7 @@ class StorageManager {
       });
       
       // ホバー時の視覚的フィードバック
-      li.style.cursor = 'pointer';
+      li.classList.add('storage-item-editable');
       li.title = 'ダブルクリックで編集';
       
       element.appendChild(li);

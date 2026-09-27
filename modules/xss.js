@@ -159,6 +159,8 @@ class XSSDemo {
     this.ensureDemoData(input);
     this.showExecutionSteps(input);
     
+    let restoreSandbox = () => {};
+
     try {
       console.log("XSSデモ実行:", input);
 
@@ -228,17 +230,21 @@ class XSSDemo {
         return false;
       };
 
+      restoreSandbox = () => {
+        window.alert = originalAlert;
+        window.fetch = originalFetch;
+        window.XMLHttpRequest = originalXMLHttpRequest;
+        window.WebSocket = originalWebSocket;
+        window.Image = originalImage;
+        navigator.sendBeacon = originalSendBeacon;
+      };
+
       const beforeStorage = this.captureStorageSnapshot();
       const result = eval(input);
       const afterStorage = this.captureStorageSnapshot();
 
       // すべてのオーバーライドを元に戻す
-      window.alert = originalAlert;
-      window.fetch = originalFetch;
-      window.XMLHttpRequest = originalXMLHttpRequest;
-      window.WebSocket = originalWebSocket;
-      window.Image = originalImage;
-      navigator.sendBeacon = originalSendBeacon;
+      restoreSandbox();
 
       // 全ての試行をカウント
       const totalBlockedRequests = fetchAttempts.length + blockedRequests.length;
@@ -264,6 +270,7 @@ class XSSDemo {
       }
       
     } catch (e) {
+      restoreSandbox();
       this.showResult(`エラー: ${e.message}`, "error");
     }
   }

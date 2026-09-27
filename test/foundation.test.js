@@ -21,3 +21,24 @@ test("all feature constructors are exposed before main.js runs", () => {
     assert.match(read(`modules/${name}.js`), /window\.[A-Za-z]+\s*=/);
   }
 });
+
+test("storage list renders key and value through DOM text nodes", () => {
+  const source = read("modules/storage.js");
+  const start = source.indexOf("updateList(element, storage)");
+  const end = source.indexOf("\n  detectDataType(value) {");
+  const section = source.slice(start, end);
+
+  assert.match(section, /keyElement\.textContent = key/);
+  assert.match(section, /valueElement\.textContent = this\.formatValueSimple\(value\)/);
+  assert.doesNotMatch(section, /li\.innerHTML/);
+});
+
+test("XSS sandbox restores temporary API hooks on an exception", () => {
+  const source = read("modules/xss.js");
+  const start = source.indexOf("runXSS()");
+  const end = source.indexOf("showExecutionSteps(script)");
+  const section = source.slice(start, end);
+
+  assert.match(section, /restoreSandbox = \(\) =>/);
+  assert.match(section, /catch \(e\) \{\s+restoreSandbox\(\);/);
+});
