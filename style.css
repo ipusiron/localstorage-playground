@@ -49,6 +49,22 @@ input[type="search"] {
 }
 
 
+
+/* Storageが使えないときの案内 */
+.storage-unavailable {
+  max-width: 900px;
+  margin: 1rem auto;
+  padding: 1rem;
+  background-color: #fff4e5;
+  border: 1px solid #c77700;
+  border-radius: 8px;
+  color: #6b4200;
+}
+
+.storage-unavailable p {
+  margin: 0.5rem 0 0 0;
+}
+
 /* 言語切り替え */
 .language-switch {
   display: flex;
@@ -2426,6 +2442,12 @@ footer {
   .preset-category-description {
     /* #666 は暗い背景で 2.5 しかない。#adb5bd で 6.9 */
     color: #adb5bd;
+  }
+
+  .storage-unavailable {
+    background-color: #3a2c12;
+    border-color: #c77700;
+    color: #f0d9b5;
   }
 
   .export-btn {

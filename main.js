@@ -12,11 +12,23 @@ class LocalStoragePlayground {
       // 先に静的な文言を差し替えてから、各モジュールが動的な部分を組み立てる
       window.i18n.apply();
 
-      this.tabManager.init();
-      this.storageManager.init();
-      this.xssDemo.init();
-      this.defenseDemo.init();
-      this.learnSection.init();
+      // 1つのモジュールが失敗しても、残りは組み立てる。
+      // Storageを拒否するブラウザーでは、以前ここで最初の例外が出た時点で
+      // 学習タブなどが作られないままになっていた。
+      const steps = [
+        ["tabs", () => this.tabManager.init()],
+        ["storage", () => this.storageManager.init()],
+        ["xss", () => this.xssDemo.init()],
+        ["defense", () => this.defenseDemo.init()],
+        ["learn", () => this.learnSection.init()]
+      ];
+      for (const [name, step] of steps) {
+        try {
+          step();
+        } catch (e) {
+          console.warn(`[init] failed: ${name}`, e);
+        }
+      }
 
       // ストレージ側の操作は StorageManager が委譲で受け取る。
       // ここで二重に登録すると同じ操作が2回走る。
@@ -63,15 +75,17 @@ class LocalStoragePlayground {
   }
 
   showInitialMessage() {
-    const hasVisited = localStorage.getItem("has_visited");
-
-    if (!hasVisited) {
+    // Storageを拒否する環境ではここで例外になる。あいさつを出せないだけなので、握って進む。
+    try {
+      if (localStorage.getItem("has_visited")) return;
       localStorage.setItem("has_visited", "true");
       localStorage.setItem("first_visit", new Date().toISOString());
-
-      console.log(window.i18n.t("welcome.title"));
-      console.log(window.i18n.t("welcome.body"));
+    } catch (e) {
+      return;
     }
+
+    console.log(window.i18n.t("welcome.title"));
+    console.log(window.i18n.t("welcome.body"));
   }
 }
 

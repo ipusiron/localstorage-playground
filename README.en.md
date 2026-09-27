@@ -98,7 +98,7 @@ There are no dependencies. Node.js 22 or later is required.
 npm test
 ```
 
-33 tests check that:
+35 tests check that:
 
 - User input is never mixed into HTML strings or event attributes
 - No inline handlers, `style` attributes, unnecessary `'unsafe-inline'`, external resources or network calls have crept in
@@ -106,6 +106,7 @@ npm test
 - Tabs, dialogs, labels, `button` types, the CSP and `lang` are wired correctly
 - The Japanese and English dictionaries have the same keys, no empty values and matching placeholders
 - No display text is hard-coded inside the modules
+- A browser that refuses Storage gets an explanation instead of an unhandled exception
 
 `.github/workflows/test.yml` runs the same tests on every push and pull request.
 

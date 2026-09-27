@@ -285,25 +285,24 @@ class XSSDemo {
   }
 
   captureStorageSnapshot() {
-    const snapshot = {
-      localStorage: {},
-      sessionStorage: {},
-      count: {
-        local: localStorage.length,
-        session: sessionStorage.length
+    const snapshot = { localStorage: {}, sessionStorage: {}, count: { local: 0, session: 0 } };
+
+    // Storageを拒否する環境では length を読むだけで例外になる。
+    // デモの実行そのものは続けられるので、空のまま返す。
+    const collect = (storage, into) => {
+      try {
+        for (let i = 0; i < storage.length; i++) {
+          const key = storage.key(i);
+          into[key] = storage.getItem(key);
+        }
+        return storage.length;
+      } catch (e) {
+        return 0;
       }
     };
-    
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      snapshot.localStorage[key] = localStorage.getItem(key);
-    }
-    
-    for (let i = 0; i < sessionStorage.length; i++) {
-      const key = sessionStorage.key(i);
-      snapshot.sessionStorage[key] = sessionStorage.getItem(key);
-    }
-    
+
+    snapshot.count.local = collect(localStorage, snapshot.localStorage);
+    snapshot.count.session = collect(sessionStorage, snapshot.sessionStorage);
     return snapshot;
   }
 
@@ -401,7 +400,16 @@ class XSSDemo {
   }
 
   ensureDemoData(script) {
-    // 基本的な攻撃デモ用のサンプルデータを自動で準備
+    // 基本的な攻撃デモ用のサンプルデータを自動で準備する。
+    // Storageが使えない環境では用意できないだけなので、握って先へ進む。
+    try {
+      this.prepareDemoData(script);
+    } catch (e) {
+      console.warn("[xss] demo data unavailable", e);
+    }
+  }
+
+  prepareDemoData(script) {
     if (script.includes('localStorage.getItem("token")') && !localStorage.getItem("token")) {
       localStorage.setItem("token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.demo_user_token");
       this.showDataPreparationNotice("token");

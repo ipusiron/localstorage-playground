@@ -52,3 +52,40 @@ test("createElementヘルパーは属性値を文字列連結で組み立てな�
   assert.match(section, /node\.setAttribute\(name, value\)/);
   assert.doesNotMatch(section, /innerHTML/);
 });
+
+test("Storageが使えない環境でも画面を止めない", () => {
+  const main = read("main.js");
+  // 1つのモジュールの失敗で残りの初期化を巻き添えにしない
+  const init = slice(main, "init() {", "setupLanguageSwitch() {");
+  assert.match(init, /for \(const \[name, step\] of steps\)/);
+  assert.match(init, /try \{[\s\S]*?step\(\);[\s\S]*?\} catch/);
+  // あいさつのためのStorage読み書きで落ちない
+  const welcome = slice(main, "showInitialMessage() {", "const app =");
+  assert.match(welcome, /try \{[\s\S]*?localStorage[\s\S]*?\} catch/);
+
+  // 読み書きできるかを実際に試してから組み立てる
+  assert.match(storage, /probeStorage\(\) \{/);
+  assert.match(storage, /get storageUsable\(\)/);
+  assert.match(storage, /showStorageUnavailableNotice\(\) \{/);
+  const storageInit = slice(storage, "init() {", "editItem(key, storageType) {");
+  assert.match(storageInit, /if \(!this\.storageUsable\)/);
+  assert.match(storageInit, /this\.showStorageUnavailableNotice\(\);/);
+
+  // 例外は画面の言葉にする
+  assert.match(storage, /reportStorageError\(error\) \{/);
+  assert.match(storage, /storageError\.quota/);
+  assert.match(storage, /storageError\.blocked/);
+  for (const method of ["refreshDisplay() {", "saveData() {", "clearStorage(type) {"]) {
+    const section = storage.slice(storage.indexOf(method), storage.indexOf(method) + 900);
+    assert.match(section, /this\.safely\(/, `${method} が safely で包まれていない`);
+  }
+});
+
+test("XSSデモはStorageが読めなくても動く", () => {
+  const xss = read("modules/xss.js");
+  const snapshot = slice(xss, "captureStorageSnapshot() {", "analyzeSecurityImpact(");
+  assert.match(snapshot, /try \{/);
+  assert.match(snapshot, /catch \(e\) \{/);
+  const demo = slice(xss, "ensureDemoData(script) {", "prepareDemoData(script) {");
+  assert.match(demo, /try \{[\s\S]*?catch/);
+});

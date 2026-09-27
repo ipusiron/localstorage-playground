@@ -152,8 +152,85 @@ class StorageManager {
     };
   }
 
+  // Storageが使える状態かを、実際に読み書きして確かめる。
+  // プライベートウィンドウや「サイトデータをブロック」の設定では、
+  // localStorage へ触れるだけで SecurityError になることがある。
+  probeStorage() {
+    const probe = (storage) => {
+      const result = { readable: false, writable: false };
+      try {
+        void storage.length;
+        result.readable = true;
+      } catch (e) {
+        return result;
+      }
+      const key = "__playground_probe__";
+      try {
+        storage.setItem(key, "1");
+        storage.removeItem(key);
+        result.writable = true;
+      } catch (e) {
+        // 読めるが書けない（容量いっぱい、書き込み拒否）
+      }
+      return result;
+    };
+
+    this.storageState = {
+      local: probe(localStorage),
+      session: probe(sessionStorage)
+    };
+    return this.storageState;
+  }
+
+  get storageUsable() {
+    const state = this.storageState || this.probeStorage();
+    return state.local.readable || state.session.readable;
+  }
+
+  // Storageへ触る処理をまとめて包む。例外は画面の言葉にして返す。
+  safely(action, fallback = null) {
+    try {
+      return action();
+    } catch (e) {
+      this.reportStorageError(e);
+      return fallback;
+    }
+  }
+
+  reportStorageError(error) {
+    const key = error && error.name === "QuotaExceededError"
+      ? "storageError.quota"
+      : "storageError.blocked";
+    this.displayNotification(this.t(key));
+    console.warn("[storage]", error);
+  }
+
+  // 使えないことを画面の先頭で伝える
+  showStorageUnavailableNotice() {
+    const section = document.getElementById("storage");
+    if (!section || section.querySelector(".storage-unavailable")) return;
+
+    const notice = this.createElement("div", { class: "storage-unavailable", role: "status" }, [
+      this.createElement("strong", { text: this.t("storageError.noticeTitle") }),
+      this.createElement("p", { text: this.t("storageError.noticeBody") })
+    ]);
+    const heading = section.querySelector("h2");
+    if (heading) heading.after(notice);
+    else section.prepend(notice);
+  }
+
   init() {
-    console.log("StorageManager init called");
+    this.probeStorage();
+
+    if (!this.storageUsable) {
+      // 一覧も統計も作れないので、理由を出して静かに止める。
+      // ほかのタブ（XSSデモ・防御デモ・学習）は動かしたいので、例外は投げない。
+      this.showStorageUnavailableNotice();
+      this.setupDelegatedActions();
+      window.storageManager = this;
+      return;
+    }
+
     this.refreshDisplay();
     this.createCollapsibleStorageOperations();
     this.addSearchFunctionality();
@@ -163,17 +240,16 @@ class StorageManager {
     this.addInteractiveExamples();
     this.setupRealtimeUpdates();
     this.setupDelegatedActions();
-    
-    window.saveData = () => this.saveData();
-    window.clearStorage = (type) => this.clearStorage(type);
-    
-    // グローバル参照を追加（エスケープされたキーの処理用）
+
+    if (!this.storageState.local.writable) {
+      // 読めるが書けない場合も、保存を押す前に伝える
+      this.displayNotification(this.t("storageError.readOnly"));
+    }
+
+    // グローバル参照を追加（他モジュールから参照するため）
     window.storageManager = this;
   }
 
-  // インラインのonclickを使わずに操作を受け取る。
-  // 動的に差し込むHTMLへ属性として関数呼び出しを書くと、
-  // キーに引用符が入ったときに壊れるうえ、CSPで script-src 'unsafe-inline' が必要になる。
   setupDelegatedActions() {
     document.addEventListener("click", (event) => {
       const target = event.target.closest("[data-action]");
@@ -569,9 +645,14 @@ class StorageManager {
 
   getStorageState(storage) {
     const state = {};
-    for (let i = 0; i < storage.length; i++) {
-      const key = storage.key(i);
-      state[key] = storage.getItem(key);
+    // 監視の最中にStorageが使えなくなっても、ポーリングごと止めない
+    try {
+      for (let i = 0; i < storage.length; i++) {
+        const key = storage.key(i);
+        state[key] = storage.getItem(key);
+      }
+    } catch (e) {
+      return "";
     }
     return JSON.stringify(state);
   }
@@ -655,11 +736,12 @@ class StorageManager {
       return;
     }
 
-    if (type === "local") {
-      localStorage.setItem(key, value);
-    } else {
-      sessionStorage.setItem(key, value);
-    }
+    // 容量いっぱい、書き込み拒否のときは理由を出して、入力は消さない
+    const saved = this.safely(() => {
+      (type === "local" ? localStorage : sessionStorage).setItem(key, value);
+      return true;
+    }, false);
+    if (!saved) return;
 
     this.keyInput.value = "";
     this.valueInput.value = "";
@@ -675,18 +757,19 @@ class StorageManager {
       return;
     }
 
-    if (type === "local") {
-      localStorage.clear();
-    } else {
-      sessionStorage.clear();
-    }
+    this.safely(() => {
+      (type === "local" ? localStorage : sessionStorage).clear();
+    });
 
     this.refreshDisplay();
   }
 
   refreshDisplay() {
-    this.updateList(this.localList, localStorage);
-    this.updateList(this.sessionList, sessionStorage);
+    // Storageが読めない状態でも、画面の描画ごと落とさない
+    this.safely(() => {
+      this.updateList(this.localList, localStorage);
+      this.updateList(this.sessionList, sessionStorage);
+    });
     
     // 容量統計も更新
     if (document.querySelector('.capacity-stats-container')) {
