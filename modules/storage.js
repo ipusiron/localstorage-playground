@@ -798,28 +798,6 @@ class StorageManager {
     return emailRegex.test(str);
   }
 
-  formatValue(value, dataType) {
-    const maxLength = 100;
-    
-    if (dataType.type === 'json') {
-      try {
-        const parsed = JSON.parse(value);
-        const formatted = JSON.stringify(parsed, null, 2);
-        return formatted.length > maxLength 
-          ? `${this.escapeHtml(formatted.substring(0, maxLength))}...`
-          : this.escapeHtml(formatted);
-      } catch (e) {
-        return this.escapeHtml(value);
-      }
-    }
-    
-    if (value.length > maxLength) {
-      return `${this.escapeHtml(value.substring(0, maxLength))}...`;
-    }
-    
-    return this.escapeHtml(value);
-  }
-
   // 戻り値は textContent へ渡すので、ここでHTMLエスケープしてはいけない。
   // エスケープすると "a<b>" が "a&lt;b&gt;" と画面に出る（実測で確認）。
   formatValueSimple(value) {
@@ -1459,12 +1437,6 @@ class StorageManager {
     }
   }
 
-  escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
   addInteractiveExamples() {
     const storageSection = document.getElementById("storage");
     
@@ -1661,6 +1633,9 @@ class StorageManager {
           maxMB,
           currentMB,
           availableMB,
+          // 使用量は 0.00MB と丸めず、単位を選んで出す
+          currentBytes: currentUsage,
+          maxBytes: maxSuccessfulSize,
           hasExistingData: currentUsage > 0
         });
       } else {
@@ -1705,7 +1680,7 @@ class StorageManager {
                 </div>
                 <div class="quota-usage">
                   <span class="usage-label">${this.t("quota.usageLabel")}</span>
-                  <span class="usage-value">${result.currentMB}MB (${((parseFloat(result.currentMB) / parseFloat(result.maxMB)) * 100).toFixed(1)}%)</span>
+                  <span class="usage-value">${this.formatBytes(result.currentBytes)} (${((result.currentBytes / result.maxBytes) * 100).toFixed(1)}%)</span>
                 </div>
               </div>
               
@@ -1773,7 +1748,7 @@ class StorageManager {
     // 幅はstyle属性ではなくCSSOMで指定する（CSPのstyle-src対策）
     const progressFill = modal.querySelector('.progress-fill');
     if (progressFill && result.success) {
-      const ratio = (parseFloat(result.currentMB) / parseFloat(result.maxMB)) * 100;
+      const ratio = (result.currentBytes / result.maxBytes) * 100;
       progressFill.style.width = `${Math.min(ratio, 100).toFixed(1)}%`;
     }
 

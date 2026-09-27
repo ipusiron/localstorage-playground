@@ -79,5 +79,5 @@ npm test
 
 - `eval()` in `xss.js`, and `'unsafe-eval'` in the CSP. This is the point of the tool. It runs with the network APIs blocked.
 - `innerHTML` is still used in `storage.js` for static markup that contains no user input. Adding user input to any of those templates is a defect.
-- `escapeHtml()` remains in `storage.js` but is only reachable from `formatValue()`, which nothing calls. Do not use it to make a new HTML string safe; build DOM instead.
+- There is deliberately no `escapeHtml()` helper any more. The old one used the `textContent` → `innerHTML` trick, which leaves `"` and `'` untouched and therefore did not protect attribute values. Do not reintroduce it; build DOM instead.
 - Screenshots are produced by `D:\ipusiron-work\business\research\try100_audit\impl\shots\day038_shots.py`, which lives outside this repository.
