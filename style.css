@@ -2418,8 +2418,17 @@ footer {
     color: #ddd;
   }
 
+  .example-description,
+  .preset-category-description {
+    /* #666 は暗い背景で 2.5 しかない。#adb5bd で 6.9 */
+    color: #adb5bd;
+  }
+
   .export-btn {
     background: #0d7377;
+    /* 既定の濃い文字色のままだと 2.61 しかない。白で 5.62 */
+    color: #ffffff;
+    border-color: #0d7377;
   }
 
   .export-btn:hover {
