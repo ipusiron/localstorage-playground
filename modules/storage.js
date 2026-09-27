@@ -174,29 +174,36 @@ class StorageManager {
     const storageSection = document.getElementById("storage");
     const inputArea = storageSection.querySelector(".input-area");
     const actionsDiv = storageSection.querySelector(".actions");
-    
-    // 既存の要素を一時的に保存
-    const inputAreaHTML = inputArea.outerHTML;
-    const actionsHTML = actionsDiv.outerHTML;
-    
-    // 折りたたみ可能なセクションを作成
+
+    // 折りたたみ可能なセクションを作成する。
+    // 既存の要素はouterHTMLで複製せず、ノードのまま移動する。
+    // 複製すると、コンストラクターが保持する入力欄の参照がDOMから切り離され、保存が効かなくなる。
     const collapsibleSection = document.createElement("div");
     collapsibleSection.className = "collapsible-section collapsed";
-    collapsibleSection.innerHTML = `
-      <div class="collapsible-header" onclick="storageManager.toggleCollapsibleSection(this)">
-        <span class="collapsible-title">⚙️ ストレージ操作</span>
-        <span class="collapsible-toggle">▼</span>
-      </div>
-      <div class="collapsible-content">
-        ${inputAreaHTML}
-        ${actionsHTML}
-      </div>
-    `;
-    
-    // 既存の要素を削除
-    inputArea.remove();
-    actionsDiv.remove();
-    
+
+    const header = document.createElement("button");
+    header.type = "button";
+    header.className = "collapsible-header";
+    header.setAttribute("aria-expanded", "false");
+
+    const title = document.createElement("span");
+    title.className = "collapsible-title";
+    title.textContent = "⚙️ ストレージ操作";
+
+    const toggle = document.createElement("span");
+    toggle.className = "collapsible-toggle";
+    toggle.textContent = "▼";
+    toggle.setAttribute("aria-hidden", "true");
+
+    header.append(title, toggle);
+    header.addEventListener("click", () => this.toggleCollapsibleSection(header));
+
+    const content = document.createElement("div");
+    content.className = "collapsible-content";
+    content.append(inputArea, actionsDiv);
+
+    collapsibleSection.append(header, content);
+
     // 新しいセクションを最上部に挿入
     const h2 = storageSection.querySelector("h2");
     h2.after(collapsibleSection);
@@ -212,6 +219,7 @@ class StorageManager {
       section.classList.remove("collapsed");
       section.classList.add("expanded");
       toggle.textContent = "▲";
+      header.setAttribute("aria-expanded", "true");
       
       // 動的コンテンツに対応した高さ計算
       content.style.maxHeight = "none";
@@ -234,6 +242,7 @@ class StorageManager {
       section.classList.remove("expanded");
       section.classList.add("collapsed");
       toggle.textContent = "▼";
+      header.setAttribute("aria-expanded", "false");
       
       // 現在の高さを取得してアニメーション用に設定
       content.style.maxHeight = content.scrollHeight + "px";
@@ -521,51 +530,36 @@ class StorageManager {
   }
 
   wrapStorageAPIs() {
-    // localStorage のメソッドをラップ
-    const originalLocalSetItem = localStorage.setItem;
-    const originalLocalRemoveItem = localStorage.removeItem;
-    const originalLocalClear = localStorage.clear;
-    
-    localStorage.setItem = (key, value) => {
-      originalLocalSetItem.call(localStorage, key, value);
-      this.refreshDisplay();
-      this.showUpdateNotification({ key, newValue: value, storageArea: localStorage });
-    };
-    
-    localStorage.removeItem = (key) => {
-      originalLocalRemoveItem.call(localStorage, key);
-      this.refreshDisplay();
-      this.showUpdateNotification({ key, newValue: null, storageArea: localStorage });
-    };
-    
-    localStorage.clear = () => {
-      originalLocalClear.call(localStorage);
-      this.refreshDisplay();
-      this.showUpdateNotification({ key: null, newValue: null, storageArea: localStorage });
-    };
-    
-    // sessionStorage のメソッドをラップ
-    const originalSessionSetItem = sessionStorage.setItem;
-    const originalSessionRemoveItem = sessionStorage.removeItem;
-    const originalSessionClear = sessionStorage.clear;
-    
-    sessionStorage.setItem = (key, value) => {
-      originalSessionSetItem.call(sessionStorage, key, value);
-      this.refreshDisplay();
-      this.showUpdateNotification({ key, newValue: value, storageArea: sessionStorage });
-    };
-    
-    sessionStorage.removeItem = (key) => {
-      originalSessionRemoveItem.call(sessionStorage, key);
-      this.refreshDisplay();
-      this.showUpdateNotification({ key, newValue: null, storageArea: sessionStorage });
-    };
-    
-    sessionStorage.clear = () => {
-      originalSessionClear.call(sessionStorage);
-      this.refreshDisplay();
-      this.showUpdateNotification({ key: null, newValue: null, storageArea: sessionStorage });
-    };
+    // Storageのインスタンスへ代入したり defineProperty したりしてはいけない。
+    // Storageは名前付きプロパティを持つオブジェクトなので、
+    // localStorage.setItem = fn は列挙可能な自前プロパティを増やし、
+    // Object.defineProperty(localStorage, "setItem", ...) にいたっては
+    // "setItem" というキーで関数の文字列を実際に保存してしまう（実測で確認）。
+    // どちらも Object.keys(localStorage) を汚し、XSS学習デモの列挙結果に
+    // 実在しないキーが混ざる。そこでプロトタイプ側を包む。
+    const manager = this;
+    const originals = {};
+
+    for (const method of ["setItem", "removeItem", "clear"]) {
+      const original = Storage.prototype[method];
+      originals[method] = original;
+
+      Storage.prototype[method] = function (...args) {
+        const result = original.apply(this, args);
+        if (this === localStorage || this === sessionStorage) {
+          manager.refreshDisplay();
+          manager.showUpdateNotification({
+            key: method === "clear" ? null : args[0],
+            newValue: method === "setItem" ? args[1] : null,
+            storageArea: this
+          });
+        }
+        return result;
+      };
+    }
+
+    // 復元できるように控えておく（テストと学習デモで使う）
+    this.originalStorageMethods = originals;
   }
 
   showUpdateNotification(event) {
@@ -824,6 +818,31 @@ class StorageManager {
     this.showEditModal(key, currentValue, storageType);
   }
 
+  // 要素を組み立てる小さなヘルパー。
+  // 文字列のHTMLを組み立てないので、キーや値に引用符が入っても属性が壊れない。
+  createElement(tag, props = {}, children = []) {
+    const node = document.createElement(tag);
+    for (const [name, value] of Object.entries(props)) {
+      if (name === "class") {
+        node.className = value;
+      } else if (name === "text") {
+        node.textContent = value;
+      } else if (name === "dataset") {
+        Object.assign(node.dataset, value);
+      } else if (name === "on") {
+        for (const [type, handler] of Object.entries(value)) {
+          node.addEventListener(type, handler);
+        }
+      } else if (value !== null && value !== undefined) {
+        node.setAttribute(name, value);
+      }
+    }
+    for (const child of [].concat(children)) {
+      if (child) node.append(child);
+    }
+    return node;
+  }
+
   showEditModal(originalKey, originalValue, storageType) {
     // 既存のモーダルがあれば削除
     const existingModal = document.querySelector('.edit-modal');
@@ -831,54 +850,70 @@ class StorageManager {
       existingModal.remove();
     }
 
-    // モーダルHTML作成
-    const modal = document.createElement('div');
-    modal.className = 'edit-modal';
-    modal.innerHTML = `
-      <div class="edit-modal-overlay" onclick="storageManager.closeEditModal()"></div>
-      <div class="edit-modal-content">
-        <div class="edit-modal-header">
-          <h3>✏️ データ編集</h3>
-          <button class="edit-modal-close" onclick="storageManager.closeEditModal()" title="閉じる">✕</button>
-        </div>
-        <div class="edit-modal-body">
-          <div class="edit-field">
-            <label for="editKey">キー:</label>
-            <input type="text" id="editKey" value="${this.escapeHtml(originalKey)}" placeholder="キーを入力">
-          </div>
-          <div class="edit-field">
-            <label for="editValue">値:</label>
-            <textarea id="editValue" placeholder="値を入力" rows="6">${this.escapeHtml(originalValue)}</textarea>
-          </div>
-          <div class="edit-info">
-            <span class="edit-storage-type">${storageType}Storage</span>
-            <span class="edit-data-size">サイズ: ${new Blob([originalValue]).size} バイト</span>
-          </div>
-        </div>
-        <div class="edit-modal-footer">
-          <button class="edit-delete-btn" onclick="storageManager.confirmDeleteFromModal('${this.escapeHtml(originalKey)}', '${storageType}')">
-            🗑️ 削除
-          </button>
-          <div class="edit-footer-right">
-            <button class="edit-cancel-btn" onclick="storageManager.closeEditModal()">キャンセル</button>
-            <button class="edit-save-btn" onclick="storageManager.saveEdit('${this.escapeHtml(originalKey)}', '${storageType}')">
-              💾 保存
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
+    const el = (...args) => this.createElement(...args);
+    const close = () => this.closeEditModal();
+
+    const keyField = el("input", { type: "text", id: "editKey", placeholder: "キーを入力" });
+    keyField.value = originalKey;
+
+    const valueField = el("textarea", { id: "editValue", rows: "6", placeholder: "値を入力" });
+    valueField.value = originalValue;
+
+    const content = el("div", {
+      class: "edit-modal-content",
+      role: "dialog",
+      "aria-modal": "true",
+      "aria-labelledby": "editModalTitle"
+    }, [
+      el("div", { class: "edit-modal-header" }, [
+        el("h3", { id: "editModalTitle", text: "✏️ データ編集" }),
+        el("button", {
+          class: "edit-modal-close", type: "button",
+          title: "閉じる", "aria-label": "閉じる", text: "✕",
+          on: { click: close }
+        })
+      ]),
+      el("div", { class: "edit-modal-body" }, [
+        el("div", { class: "edit-field" }, [
+          el("label", { for: "editKey", text: "キー:" }),
+          keyField
+        ]),
+        el("div", { class: "edit-field" }, [
+          el("label", { for: "editValue", text: "値:" }),
+          valueField
+        ]),
+        el("div", { class: "edit-info" }, [
+          el("span", { class: "edit-storage-type", text: `${storageType}Storage` }),
+          el("span", { class: "edit-data-size", text: `サイズ: ${new Blob([originalValue]).size} バイト` })
+        ])
+      ]),
+      el("div", { class: "edit-modal-footer" }, [
+        el("button", {
+          class: "edit-delete-btn", type: "button", text: "🗑️ 削除",
+          on: { click: () => this.confirmDeleteFromModal(originalKey, storageType) }
+        }),
+        el("div", { class: "edit-footer-right" }, [
+          el("button", { class: "edit-cancel-btn", type: "button", text: "キャンセル", on: { click: close } }),
+          el("button", {
+            class: "edit-save-btn", type: "button", text: "💾 保存",
+            on: { click: () => this.saveEdit(originalKey, storageType) }
+          })
+        ])
+      ])
+    ]);
+
+    const modal = el("div", { class: "edit-modal" }, [
+      el("div", { class: "edit-modal-overlay", on: { click: close } }),
+      content
+    ]);
 
     // モーダルをボディに追加
     document.body.appendChild(modal);
-    
+
     // フォーカス設定
     setTimeout(() => {
-      const keyInput = document.getElementById('editKey');
-      if (keyInput) {
-        keyInput.focus();
-        keyInput.select();
-      }
+      keyField.focus();
+      keyField.select();
     }, 100);
 
     // ESCキーで閉じる
