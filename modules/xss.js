@@ -1,4 +1,4 @@
-export class XSSDemo {
+class XSSDemo {
   constructor() {
     this.xssInput = document.getElementById("xssInput");
     this.xssResult = document.getElementById("xssResult");
@@ -493,3 +493,5 @@ export class XSSDemo {
   }
 
 }
+
+window.XSSDemo = XSSDemo;

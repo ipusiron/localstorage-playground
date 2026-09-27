@@ -1,4 +1,4 @@
-export class TabManager {
+class TabManager {
   constructor() {
     this.tabButtons = document.querySelectorAll(".tab-button");
     this.tabContents = document.querySelectorAll(".tab-content");
@@ -30,3 +30,5 @@ export class TabManager {
     });
   }
 }
+
+window.TabManager = TabManager;

@@ -1,9 +1,3 @@
-import { TabManager } from './modules/tabs.js';
-import { StorageManager } from './modules/storage.js';
-import { XSSDemo } from './modules/xss.js';
-import { DefenseDemo } from './modules/defense.js';
-import { LearnSection } from './modules/learn.js';
-
 class LocalStoragePlayground {
   constructor() {
     this.tabManager = new TabManager();

@@ -1,4 +1,4 @@
-export class StorageManager {
+class StorageManager {
   constructor() {
     this.keyInput = document.getElementById("keyInput");
     this.valueInput = document.getElementById("valueInput");
@@ -1708,3 +1708,5 @@ export class StorageManager {
     }
   }
 }
+
+window.StorageManager = StorageManager;

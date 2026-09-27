@@ -1,4 +1,4 @@
-export class DefenseDemo {
+class DefenseDemo {
   constructor() {
     // 防御デモ専用のクラス
   }
@@ -168,3 +168,5 @@ element.innerHTML = clean;</code>
     demoDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 }
+
+window.DefenseDemo = DefenseDemo;

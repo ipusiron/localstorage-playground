@@ -1,4 +1,4 @@
-export class LearnSection {
+class LearnSection {
   constructor() {
     this.learnContent = null;
   }
@@ -83,3 +83,5 @@ export class LearnSection {
     learnSection.appendChild(additionalContent);
   }
 }
+
+window.LearnSection = LearnSection;
