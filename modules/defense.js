@@ -18,24 +18,34 @@ class DefenseDemo {
         <div class="defense-card">
           <h4>📋 CSP (Content Security Policy)</h4>
           <p>適切なCSPヘッダーでXSS攻撃を防ぐ</p>
-          <button class="defense-btn" onclick="defenseDemo.demonstrateCSP()">CSP効果を確認</button>
+          <button class="defense-btn" type="button" data-defense="csp">CSP効果を確認</button>
         </div>
         
         <div class="defense-card">
           <h4>🔐 HttpOnly Cookie</h4>
           <p>JavaScriptからアクセスできない安全なCookie</p>
-          <button class="defense-btn" onclick="defenseDemo.demonstrateHttpOnly()">HttpOnly効果を確認</button>
+          <button class="defense-btn" type="button" data-defense="httponly">HttpOnly効果を確認</button>
         </div>
         
         <div class="defense-card">
           <h4>🧹 入力サニタイゼーション</h4>
           <p>危険な文字をエスケープして攻撃を無効化</p>
-          <button class="defense-btn" onclick="defenseDemo.demonstrateSanitization()">サニタイゼーション効果を確認</button>
+          <button class="defense-btn" type="button" data-defense="sanitization">サニタイゼーション効果を確認</button>
         </div>
       </div>
     `;
     
     defenseSection.appendChild(defenseContainer);
+
+    // インラインのonclickを使わず、生成後にイベントを登録する
+    const handlers = {
+      csp: () => this.demonstrateCSP(),
+      httponly: () => this.demonstrateHttpOnly(),
+      sanitization: () => this.demonstrateSanitization()
+    };
+    for (const button of defenseContainer.querySelectorAll('[data-defense]')) {
+      button.addEventListener('click', handlers[button.dataset.defense]);
+    }
   }
 
   demonstrateCSP() {
@@ -98,6 +108,7 @@ console.log(document.cookie) // ""（空文字）</code>
   }
 
   demonstrateSanitization() {
+    // 教育用サンプル: このあとエスケープして表示するだけで、DOMへは差し込まない
     const maliciousInput = '<script>alert("XSS")</script><img src="x" onerror="alert(\'XSS\')">';
     const sanitizedInput = this.sanitizeInput(maliciousInput);
 

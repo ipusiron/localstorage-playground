@@ -14,7 +14,13 @@ class LocalStoragePlayground {
       this.xssDemo.init();
       this.defenseDemo.init();
       this.learnSection.init();
-      
+      // ストレージ側の操作は StorageManager が委譲で受け取る。
+      // ここで二重に登録すると同じ操作が2回走る。
+      document.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-action]");
+        if (button && button.dataset.action === "run-xss") this.xssDemo.runXSS();
+      });
+
       this.addGlobalEventListeners();
       this.showInitialMessage();
       

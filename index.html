@@ -5,7 +5,7 @@
   <title>LocalStorage Playground</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- セキュリティヘッダー -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self'; img-src 'self' data:; connect-src 'none'; base-uri 'self'; form-action 'self'; object-src 'none';">
   <meta name="referrer" content="no-referrer">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -15,25 +15,27 @@
     <p class="subtitle">localStorage / sessionStorage の特性と危険性を体験しよう</p>
   </header>
 
-  <nav class="tabs">
-    <button class="tab-button active" data-tab="storage">🗃 ストレージ操作</button>
-    <button class="tab-button" data-tab="xss">💥 XSSデモ</button>
-    <button class="tab-button" data-tab="defense">🛡️ 防御デモ</button>
-    <button class="tab-button" data-tab="learn">📖 学習</button>
+  <nav class="tabs" role="tablist" aria-label="機能">
+    <button class="tab-button active" type="button" id="tab-storage" role="tab" aria-selected="true" aria-controls="storage" data-tab="storage">🗃 ストレージ操作</button>
+    <button class="tab-button" type="button" id="tab-xss" role="tab" aria-selected="false" aria-controls="xss" data-tab="xss">💥 XSSデモ</button>
+    <button class="tab-button" type="button" id="tab-defense" role="tab" aria-selected="false" aria-controls="defense" data-tab="defense">🛡️ 防御デモ</button>
+    <button class="tab-button" type="button" id="tab-learn" role="tab" aria-selected="false" aria-controls="learn" data-tab="learn">📖 学習</button>
   </nav>
 
   <main>
-    <section id="storage" class="tab-content active">
+    <section id="storage" class="tab-content active" role="tabpanel" tabindex="0" aria-labelledby="tab-storage">
       <h2>🗃 ストレージ（localStorageとsessionStorage）操作</h2>
 
       <div class="input-area">
+        <label class="visually-hidden" for="keyInput">キー</label>
         <input type="text" id="keyInput" placeholder="キー">
+        <label class="visually-hidden" for="valueInput">値</label>
         <input type="text" id="valueInput" placeholder="値">
         <select id="storageType">
           <option value="local">localStorage</option>
           <option value="session">sessionStorage</option>
         </select>
-        <button onclick="saveData()">保存</button>
+        <button type="button" data-action="save-data">保存</button>
       </div>
 
       <div class="actions">
@@ -44,7 +46,7 @@
         <div>
           <div class="storage-header">
             <h3>📦 localStorage</h3>
-            <button class="clear-storage-btn" onclick="clearStorage('local')" title="localStorageを全削除">
+            <button class="clear-storage-btn" type="button" data-action="clear-storage" data-storage="local" title="localStorageを全削除">
               🗑️ 全削除
             </button>
           </div>
@@ -53,7 +55,7 @@
         <div>
           <div class="storage-header">
             <h3>⏳ sessionStorage</h3>
-            <button class="clear-storage-btn" onclick="clearStorage('session')" title="sessionStorageを全削除">
+            <button class="clear-storage-btn" type="button" data-action="clear-storage" data-storage="session" title="sessionStorageを全削除">
               🗑️ 全削除
             </button>
           </div>
@@ -62,22 +64,23 @@
       </div>
     </section>
 
-    <section id="xss" class="tab-content">
+    <section id="xss" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="tab-xss">
       <h2>💥 XSSによるlocalStorage盗難のデモ</h2>
       <p>下のフィールドに悪意あるスクリプトを入力して「実行」すると、localStorageからデータを盗む動作を再現できます（※安全な環境内のみで実行してください）。</p>
       <div class="xss-input-section">
+        <label class="visually-hidden" for="xssInput">教育用スクリプト</label>
         <textarea id="xssInput" placeholder='例: alert(localStorage.getItem("token"))'></textarea>
-        <button class="xss-execute-btn" onclick="runXSS()">🚀 実行</button>
+        <button class="xss-execute-btn" type="button" data-action="run-xss">🚀 実行</button>
       </div>
       <div id="xssResult" class="xss-output"></div>
     </section>
 
-    <section id="defense" class="tab-content">
+    <section id="defense" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="tab-defense">
       <h2>🛡️ セキュリティ防御デモンストレーション</h2>
       <p>XSS攻撃に対する主要な防御手法の効果を実際に確認できます。各防御策がどのように攻撃を無効化するかを体験してください。</p>
     </section>
 
-    <section id="learn" class="tab-content">
+    <section id="learn" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="tab-learn">
       <h2>📖 Web Storageの仕組みとセキュリティ</h2>
       <ul>
         <li><strong>localStorage</strong> は永続的にブラウザ内に保存され、JSから自由に読み書きできます。</li>

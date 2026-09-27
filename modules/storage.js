@@ -162,12 +162,59 @@ class StorageManager {
     this.addPresetSelector();
     this.addInteractiveExamples();
     this.setupRealtimeUpdates();
+    this.setupDelegatedActions();
     
     window.saveData = () => this.saveData();
     window.clearStorage = (type) => this.clearStorage(type);
     
     // グローバル参照を追加（エスケープされたキーの処理用）
     window.storageManager = this;
+  }
+
+  // インラインのonclickを使わずに操作を受け取る。
+  // 動的に差し込むHTMLへ属性として関数呼び出しを書くと、
+  // キーに引用符が入ったときに壊れるうえ、CSPで script-src 'unsafe-inline' が必要になる。
+  setupDelegatedActions() {
+    document.addEventListener("click", (event) => {
+      const target = event.target.closest("[data-action]");
+      if (!target) return;
+
+      const storageType = target.dataset.storage;
+
+      switch (target.dataset.action) {
+        case "save-data":
+          this.saveData();
+          break;
+        case "clear-storage":
+          this.clearStorage(storageType);
+          break;
+        case "toggle-collapsible":
+          this.toggleCollapsibleSection(target);
+          break;
+        case "close-delete-confirm":
+          this.closeDeleteConfirmDialog();
+          break;
+        case "execute-delete":
+          if (this.pendingDelete) {
+            this.executeDeleteFromModal(this.pendingDelete.key, this.pendingDelete.storageType);
+          }
+          break;
+        case "export-data":
+          this.exportData(storageType);
+          break;
+        case "close-export":
+          this.closeExportModal();
+          break;
+        case "download-export":
+          this.downloadExport(storageType);
+          break;
+        case "close-quota":
+          this.closeQuotaResultDialog();
+          break;
+        default:
+          break;
+      }
+    });
   }
 
   createCollapsibleStorageOperations() {
@@ -582,6 +629,9 @@ class StorageManager {
     // 新しい通知を作成
     const notification = document.createElement('div');
     notification.className = 'storage-notification';
+    // 画面の変化を読み上げへ伝える
+    notification.setAttribute('role', 'status');
+    notification.setAttribute('aria-live', 'polite');
     notification.textContent = message;
     
     // ストレージセクションの最上部に追加
@@ -770,56 +820,32 @@ class StorageManager {
     return this.escapeHtml(value);
   }
 
+  // 戻り値は textContent へ渡すので、ここでHTMLエスケープしてはいけない。
+  // エスケープすると "a<b>" が "a&lt;b&gt;" と画面に出る（実測で確認）。
   formatValueSimple(value) {
     const maxLength = 80;  // シンプル表示用により短く
-    
+
     // JSON の場合は1行で表示
     if (this.isJSON(value)) {
       try {
         const parsed = JSON.parse(value);
         const compactJson = JSON.stringify(parsed);
         if (compactJson.length > maxLength) {
-          return `${this.escapeHtml(compactJson.substring(0, maxLength))}...`;
+          return `${compactJson.substring(0, maxLength)}...`;
         }
-        return this.escapeHtml(compactJson);
+        return compactJson;
       } catch (e) {
         // JSONパースエラーの場合は通常の文字列として処理
       }
     }
-    
+
     if (value.length > maxLength) {
-      return `${this.escapeHtml(value.substring(0, maxLength))}...`;
+      return `${value.substring(0, maxLength)}...`;
     }
-    
-    return this.escapeHtml(value);
+
+    return value;
   }
 
-  deleteItem(key, storageType) {
-    if (!confirm(`「${key}」を${storageType}Storageから削除しますか？`)) {
-      return;
-    }
-    
-    const storage = storageType === 'local' ? localStorage : sessionStorage;
-    storage.removeItem(key);
-    
-    this.displayNotification(`✅ 「${key}」を削除しました`);
-    this.refreshDisplay();
-  }
-
-  editItem(key, storageType) {
-    const storage = storageType === 'local' ? localStorage : sessionStorage;
-    const currentValue = storage.getItem(key);
-    
-    if (currentValue === null) {
-      alert(`キー「${key}」が見つかりません。`);
-      return;
-    }
-    
-    this.showEditModal(key, currentValue, storageType);
-  }
-
-  // 要素を組み立てる小さなヘルパー。
-  // 文字列のHTMLを組み立てないので、キーや値に引用符が入っても属性が壊れない。
   createElement(tag, props = {}, children = []) {
     const node = document.createElement(tag);
     for (const [name, value] of Object.entries(props)) {
@@ -992,16 +1018,16 @@ class StorageManager {
     const dialog = document.createElement('div');
     dialog.className = 'delete-confirm-dialog';
     dialog.innerHTML = `
-      <div class="delete-confirm-overlay" onclick="storageManager.closeDeleteConfirmDialog()"></div>
-      <div class="delete-confirm-content">
+      <div class="delete-confirm-overlay" data-action="close-delete-confirm"></div>
+      <div class="delete-confirm-content" role="dialog" aria-modal="true" aria-labelledby="deleteConfirmTitle">
         <div class="delete-confirm-header">
-          <h3>🗑️ 削除の確認</h3>
+          <h3 id="deleteConfirmTitle">🗑️ 削除の確認</h3>
         </div>
         <div class="delete-confirm-body">
           <p>以下のデータを削除しますか？</p>
           <div class="delete-item-info">
             <div class="delete-key-info">
-              <strong>キー:</strong> <code>${this.escapeHtml(key)}</code>
+              <strong>キー:</strong> <code class="delete-key-name"></code>
             </div>
             <div class="delete-storage-info">
               <strong>ストレージ:</strong> ${storageType}Storage
@@ -1010,16 +1036,21 @@ class StorageManager {
           <p class="delete-warning">⚠️ この操作は取り消せません</p>
         </div>
         <div class="delete-confirm-footer">
-          <button class="delete-cancel-btn" onclick="storageManager.closeDeleteConfirmDialog()">キャンセル</button>
-          <button class="delete-execute-btn" onclick="storageManager.executeDeleteFromModal('${this.escapeHtml(key)}', '${storageType}')">
+          <button class="delete-cancel-btn" type="button" data-action="close-delete-confirm">キャンセル</button>
+          <button class="delete-execute-btn" type="button" data-action="execute-delete">
             🗑️ 削除する
           </button>
         </div>
       </div>
     `;
 
+    // キーは属性やHTML文字列へ入れず、テキストとして入れる
+    dialog.querySelector('.delete-key-name').textContent = key;
+    // 実行ボタンが参照する対象を控える
+    this.pendingDelete = { key, storageType };
+
     document.body.appendChild(dialog);
-    
+
     // ESCキーで閉じる
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
@@ -1031,6 +1062,7 @@ class StorageManager {
   }
 
   closeDeleteConfirmDialog() {
+    this.pendingDelete = null;
     const dialog = document.querySelector('.delete-confirm-dialog');
     if (dialog) {
       dialog.remove();
@@ -1071,7 +1103,7 @@ class StorageManager {
           <div class="stat-card local-stats">
             <div class="stat-header">
               <span class="stat-title">📦 localStorage</span>
-              <button class="export-btn" onclick="storageManager.exportData('local')" title="データをエクスポート">
+              <button class="export-btn" type="button" data-action="export-data" data-storage="local" title="データをエクスポート">
                 💾 書き出し
               </button>
             </div>
@@ -1089,7 +1121,7 @@ class StorageManager {
           <div class="stat-card session-stats">
             <div class="stat-header">
               <span class="stat-title">⏳ sessionStorage</span>
-              <button class="export-btn" onclick="storageManager.exportData('session')" title="データをエクスポート">
+              <button class="export-btn" type="button" data-action="export-data" data-storage="session" title="データをエクスポート">
                 💾 書き出し
               </button>
             </div>
@@ -1221,11 +1253,11 @@ class StorageManager {
     const modal = document.createElement('div');
     modal.className = 'export-modal';
     modal.innerHTML = `
-      <div class="export-modal-overlay" onclick="storageManager.closeExportModal()"></div>
+      <div class="export-modal-overlay" data-action="close-export"></div>
       <div class="export-modal-content">
         <div class="export-modal-header">
           <h3>💾 データエクスポート</h3>
-          <button class="export-modal-close" onclick="storageManager.closeExportModal()" title="閉じる">✕</button>
+          <button class="export-modal-close" type="button" data-action="close-export" title="閉じる">✕</button>
         </div>
         <div class="export-modal-body">
           <div class="export-info">
@@ -1249,8 +1281,8 @@ class StorageManager {
           </div>
         </div>
         <div class="export-modal-footer">
-          <button class="export-cancel-btn" onclick="storageManager.closeExportModal()">キャンセル</button>
-          <button class="export-download-btn" onclick="storageManager.downloadExport('${storageType}')">
+          <button class="export-cancel-btn" type="button" data-action="close-export">キャンセル</button>
+          <button class="export-download-btn" type="button" data-action="download-export" data-storage="${storageType}">
             💾 ダウンロード
           </button>
         </div>
@@ -1448,7 +1480,7 @@ class StorageManager {
           <div>
             <div class="storage-header">
               <h3>📦 localStorage</h3>
-              <button class="clear-storage-btn" onclick="storageManager.clearStorage('local')" title="localStorageを全削除">
+              <button class="clear-storage-btn" type="button" data-action="clear-storage" data-storage="local" title="localStorageを全削除">
                 🗑️ 全削除
               </button>
             </div>
@@ -1457,7 +1489,7 @@ class StorageManager {
           <div>
             <div class="storage-header">
               <h3>⏳ sessionStorage</h3>
-              <button class="clear-storage-btn" onclick="storageManager.clearStorage('session')" title="sessionStorageを全削除">
+              <button class="clear-storage-btn" type="button" data-action="clear-storage" data-storage="session" title="sessionStorageを全削除">
                 🗑️ 全削除
               </button>
             </div>
@@ -1490,7 +1522,7 @@ class StorageManager {
     const examplesContainer = document.createElement("div");
     examplesContainer.className = "collapsible-section collapsed";
     examplesContainer.innerHTML = `
-      <div class="collapsible-header" onclick="storageManager.toggleCollapsibleSection(this)">
+      <div class="collapsible-header" data-action="toggle-collapsible">
         <span class="collapsible-title">🧪 インタラクティブテスト</span>
         <span class="collapsible-toggle">▼</span>
       </div>
@@ -1649,11 +1681,11 @@ class StorageManager {
     
     if (result.success) {
       modal.innerHTML = `
-        <div class="quota-modal-overlay" onclick="storageManager.closeQuotaResultDialog()"></div>
+        <div class="quota-modal-overlay" data-action="close-quota"></div>
         <div class="quota-modal-content">
           <div class="quota-modal-header">
             <h3>📊 容量制限テスト結果</h3>
-            <button class="quota-modal-close" onclick="storageManager.closeQuotaResultDialog()" title="閉じる">✕</button>
+            <button class="quota-modal-close" type="button" data-action="close-quota" title="閉じる">✕</button>
           </div>
           <div class="quota-modal-body">
             <div class="quota-summary">
@@ -1670,7 +1702,7 @@ class StorageManager {
               
               <div class="quota-progress-bar">
                 <div class="progress-track">
-                  <div class="progress-fill" style="width: ${Math.min(((parseFloat(result.currentMB) / parseFloat(result.maxMB)) * 100), 100).toFixed(1)}%"></div>
+                  <div class="progress-fill"></div>
                 </div>
                 <div class="progress-labels">
                   <span>0MB</span>
@@ -1692,7 +1724,7 @@ class StorageManager {
             </div>
           </div>
           <div class="quota-modal-footer">
-            <button class="quota-ok-btn" onclick="storageManager.closeQuotaResultDialog()">
+            <button class="quota-ok-btn" type="button" data-action="close-quota">
               📋 確認
             </button>
           </div>
@@ -1700,11 +1732,11 @@ class StorageManager {
       `;
     } else {
       modal.innerHTML = `
-        <div class="quota-modal-overlay" onclick="storageManager.closeQuotaResultDialog()"></div>
+        <div class="quota-modal-overlay" data-action="close-quota"></div>
         <div class="quota-modal-content error">
           <div class="quota-modal-header">
             <h3>❌ テストエラー</h3>
-            <button class="quota-modal-close" onclick="storageManager.closeQuotaResultDialog()" title="閉じる">✕</button>
+            <button class="quota-modal-close" type="button" data-action="close-quota" title="閉じる">✕</button>
           </div>
           <div class="quota-modal-body">
             <div class="error-content">
@@ -1721,12 +1753,19 @@ class StorageManager {
             </div>
           </div>
           <div class="quota-modal-footer">
-            <button class="quota-ok-btn" onclick="storageManager.closeQuotaResultDialog()">
+            <button class="quota-ok-btn" type="button" data-action="close-quota">
               閉じる
             </button>
           </div>
         </div>
       `;
+    }
+
+    // 幅はstyle属性ではなくCSSOMで指定する（CSPのstyle-src対策）
+    const progressFill = modal.querySelector('.progress-fill');
+    if (progressFill && result.success) {
+      const ratio = (parseFloat(result.currentMB) / parseFloat(result.maxMB)) * 100;
+      progressFill.style.width = `${Math.min(ratio, 100).toFixed(1)}%`;
     }
 
     document.body.appendChild(modal);

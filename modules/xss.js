@@ -177,6 +177,18 @@ class XSSDemo {
       // thisのコンテキストを保存
       const self = this;
 
+      // 差し替えるより先に復元手順を決めておく。
+      // 途中で例外が出ても、必ずこの関数で元へ戻せるようにする。
+      restoreSandbox = () => {
+        window.alert = originalAlert;
+        window.fetch = originalFetch;
+        window.XMLHttpRequest = originalXMLHttpRequest;
+        window.WebSocket = originalWebSocket;
+        window.Image = originalImage;
+        navigator.sendBeacon = originalSendBeacon;
+      };
+
+
       window.alert = (msg) => {
         alertContent = msg;
         self.logSecurityEvent("ALERT_CALLED", { message: msg });
@@ -228,15 +240,6 @@ class XSSDemo {
         blockedRequests.push({ type: 'sendBeacon', url, data });
         self.logSecurityEvent("EXTERNAL_REQUEST_BLOCKED", { type: 'sendBeacon', url });
         return false;
-      };
-
-      restoreSandbox = () => {
-        window.alert = originalAlert;
-        window.fetch = originalFetch;
-        window.XMLHttpRequest = originalXMLHttpRequest;
-        window.WebSocket = originalWebSocket;
-        window.Image = originalImage;
-        navigator.sendBeacon = originalSendBeacon;
       };
 
       const beforeStorage = this.captureStorageSnapshot();
