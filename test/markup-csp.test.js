@@ -101,3 +101,10 @@ test("狭い画面で横に溢れない指定が入っている", () => {
   assert.doesNotMatch(css, /minmax\((\d+)px, 1fr\)/);
   assert.match(css, /minmax\(min\(100%, \d+px\), 1fr\)/);
 });
+
+test("2列に並べる枠は狭い画面で縮む", () => {
+  // 1fr のままだと中身の最小幅で押し広げられ、320pxで横に溢れた
+  assert.doesNotMatch(css, /grid-template-columns:\s*1fr 1fr/);
+  assert.match(css, /\.before-defense, \.after-defense \{[^}]*min-width: 0;/);
+  assert.match(css, /\.output-sample \{[^}]*overflow-wrap: anywhere;/);
+});

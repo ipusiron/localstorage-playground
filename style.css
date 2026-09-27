@@ -1335,12 +1335,14 @@ footer {
 
 .defense-comparison {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* 1frのままだと中身の最小幅で押し広げられ、狭い画面で横に溢れる */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
   margin: 1rem 0;
 }
 
 .before-defense, .after-defense {
+  min-width: 0;
   padding: 1rem;
   border-radius: 0.25rem;
 }
@@ -1440,6 +1442,8 @@ footer {
 }
 
 .output-sample {
+  /* 攻撃文字列は長いので、枠の中で折り返す */
+  overflow-wrap: anywhere;
   background-color: #f8f9fa;
   border: 1px solid #dee2e6;
   border-radius: 0.25rem;
@@ -1840,7 +1844,7 @@ footer {
 
 .stats-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1.5rem;
 }
 
@@ -3474,7 +3478,7 @@ footer {
 
 .quota-main-stat {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
   margin-bottom: 2rem;
 }

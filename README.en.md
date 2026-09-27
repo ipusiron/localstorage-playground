@@ -98,7 +98,7 @@ There are no dependencies. Node.js 22 or later is required.
 npm test
 ```
 
-32 tests check that:
+33 tests check that:
 
 - User input is never mixed into HTML strings or event attributes
 - No inline handlers, `style` attributes, unnecessary `'unsafe-inline'`, external resources or network calls have crept in
