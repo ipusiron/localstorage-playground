@@ -98,7 +98,7 @@ There are no dependencies. Node.js 22 or later is required.
 npm test
 ```
 
-35 tests check that:
+36 tests check that:
 
 - User input is never mixed into HTML strings or event attributes
 - No inline handlers, `style` attributes, unnecessary `'unsafe-inline'`, external resources or network calls have crept in
@@ -130,7 +130,8 @@ localstorage-playground/
 │   ├── storage-safety.test.js # Handling of input and of storage monitoring
 │   ├── markup-csp.test.js    # CSP, markup and accessibility
 │   ├── i18n.test.js          # The dictionaries and the absence of hard-coded text
-│   └── docs.test.js          # Consistency of README and SECURITY.md
+│   ├── docs.test.js          # Consistency of README and SECURITY.md
+│   └── readme.test.js        # Use-case examples checked against the source
 ├── .github/workflows/test.yml # Runs the tests on push and pull request
 ├── package.json              # Just calls node --test; no dependencies
 ├── CLAUDE.md                 # Working notes for this repository
@@ -155,6 +156,20 @@ Everything also works when the page is opened over `file://`. Bear in mind that 
 ## 📄 License
 
 MIT License - see [LICENSE](LICENSE) for details.
+
+## 🎯 Use cases
+
+### Ways of using this tool in particular
+
+- Confirming that localStorage can be read entirely from JavaScript (XSS and token-storage classes): the attack samples include code that reads stored values wholesale, such as `localStorage.getItem("token")` and `JSON.stringify(localStorage)`. If arbitrary script runs through XSS, all tokens in localStorage are read. You can confirm, with the sample code, the danger of keeping an authentication token in localStorage
+- Confirming that it persists until deleted and can become persistent XSS (persistence classes): the samples include code that stores a value containing a `<script>` under the name `malware`. Because localStorage is not cleared when the tab closes, once malicious data is written it stays and runs on every open, which can become persistent XSS. You can confirm the danger of storage that does not clear
+- Confirming that safe output uses textContent, not innerHTML (XSS-defense classes): the defense samples show that putting user input in with `element.innerHTML = ...` is dangerous while putting it in with `node.textContent = userInput` is safe. You can confirm the basic that inserting a string as text, rather than letting it be interpreted as HTML, prevents XSS
+
+### General uses
+
+- Learn how localStorage works and how XSS steals or rewrites its contents
+- Use it as material to consider where to store an authentication token (localStorage, cookies and so on)
+- Confirm the basics of XSS defense, such as the difference between innerHTML and textContent, at hand
 
 ## 🛠 About this tool
 

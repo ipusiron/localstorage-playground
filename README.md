@@ -134,7 +134,7 @@ hub: true
 npm test
 ```
 
-35件のテストがあり、次を確かめます。
+36件のテストがあり、次を確かめます。
 
 - 利用者の入力をHTML文字列やイベント属性へ混ぜていないこと
 - インラインハンドラー・`style`属性・不要な `'unsafe-inline'`・外部リソース・通信を持ち込んでいないこと
@@ -166,7 +166,8 @@ localstorage-playground/
 │   ├── storage-safety.test.js # 入力の扱いとストレージ監視の作法
 │   ├── markup-csp.test.js    # CSP・マークアップ・アクセシビリティ
 │   ├── i18n.test.js          # 日英の辞書と文言の集約
-│   └── docs.test.js          # READMEとSECURITY.mdの整合
+│   ├── docs.test.js          # READMEとSECURITY.mdの整合
+│   └── readme.test.js        # ユースケースの例をソースと突き合わせる
 ├── .github/workflows/test.yml # pushとpull requestでテストを実行
 ├── package.json              # node --test を呼ぶだけ。依存なし
 ├── CLAUDE.md                 # このリポジトリーで作業するときの前提
@@ -191,6 +192,20 @@ localstorage-playground/
 ## 📄 ライセンス
 
 MIT License - 詳細は [LICENSE](LICENSE) をご覧ください。
+
+## 🎯 ユースケース
+
+### このツールならではの使い方
+
+- localStorageがJavaScriptから全部読めることを確かめる（XSS・トークン保管の授業）：攻撃の見本には、`localStorage.getItem("token")`や`JSON.stringify(localStorage)`のように、保管した値を丸ごと読み出すコードが並ぶ。XSSで任意のスクリプトが動くと、localStorageのトークンはすべて読まれる。認証トークンをlocalStorageに置く危うさを、見本のコードで確かめられる
+- 消すまで残るので持続的XSSになりうることを確かめる（永続化の授業）：見本には、`malware`という名前で`<script>`を含む値を保存するコードがある。localStorageはタブを閉じても消えないので、一度書き込まれた悪意あるデータは残り続け、開くたびに動く持続的XSSになりうる。保存が消えないことの危うさを確かめられる
+- 安全な出力はinnerHTMLでなくtextContentを使うことを確かめる（XSS対策の授業）：対策の見本では、利用者の入力を`element.innerHTML = ...`で入れると危険で、`node.textContent = userInput`で入れると安全だと示す。文字列をそのままHTMLとして解釈させず、文字として入れることでXSSを防ぐ基本を確かめられる
+
+### 一般的な使い方
+
+- localStorageのしくみと、XSSで中身が盗まれる・書き換えられる流れを学ぶ
+- 認証トークンの保管場所（localStorage・Cookieなど）の選び方を考える教材にする
+- innerHTMLとtextContentの違いなど、XSS対策の基本を手元で確かめる
 
 ## 🛠 このツールについて
 
